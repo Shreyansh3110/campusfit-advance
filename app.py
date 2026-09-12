@@ -32,7 +32,8 @@ from api import api_bp
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
 static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static'))
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-app.secret_key = os.environ.get("CAMPUSFIT_SECRET") or secrets.token_hex(32)
+# Use a static fallback instead of a random one so Vercel doesn't break sessions on every request
+app.secret_key = os.environ.get("CAMPUSFIT_SECRET") or "campusfit_super_secret_fallback_key_2024"
 app.register_blueprint(api_bp)
 
 
