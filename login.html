@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Login • CampusFit{% endblock %}
+{% block content %}
+<div class="center card">
+  <h1>CampusFit Login</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Email</label><input type="email" name="email" required>
+    <label>Password</label><input type="password" name="password" required>
+    <button>Login</button>
+  </form>
+  <hr>
+  <p><b>Admin Demo Login</b></p>
+  <p>Email: <b>admin@campusfit.com</b><br>Password: <b>admin123</b></p>
+  <p class="muted">Student? <a href="/register">Create account</a></p>
+</div>
+{% endblock %}

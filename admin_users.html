@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Manage Users • CampusFit{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>👥 Manage Users</h1>
+  <table>
+    <tr><th>Name</th><th>Email</th><th>Team</th><th>Points</th><th>Streak</th><th>Actions</th></tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u['avatar'] }} {{ u['name'] }}</td>
+      <td>{{ u['email'] }}</td>
+      <td class="muted">{{ u['team_name'] or '—' }}</td>
+      <td>⭐ {{ u['points'] }}</td>
+      <td>🔥 {{ u['streak'] }}</td>
+      <td>
+        <form method="post" action="/admin/users/{{ u['id'] }}/delete" style="display:inline"
+              onsubmit="return confirm('Delete {{ u['name'] }}? This removes their activities too.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

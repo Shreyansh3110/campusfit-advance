@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Manage Activities • CampusFit{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>💪 All Logged Activities</h1>
+  <table>
+    <tr><th>Student</th><th>Activity</th><th>Minutes</th><th>Points</th><th>When</th><th></th></tr>
+    {% for a in acts %}
+    <tr>
+      <td>{{ a['name'] }}</td><td>{{ a['activity'] }}</td><td>{{ a['minutes'] }}</td>
+      <td>⭐ {{ a['points'] }}</td><td class="muted">{{ a['created_at'] }}</td>
+      <td>
+        <form method="post" action="/admin/activities/{{ a['id'] }}/delete" style="display:inline"
+              onsubmit="return confirm('Delete this activity log?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Manage Rewards • CampusFit{% endblock %}
+{% block content %}
+<h1>🎁 Manage Rewards</h1>
+
+<div class="card">
+  <h2>Add a Reward</h2>
+  <form method="post" action="/admin/rewards/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="grid-2">
+      <div><label>Name</label><input name="name" required></div>
+      <div><label>Icon (emoji)</label><input name="icon" value="🎁" maxlength="4"></div>
+    </div>
+    <label>Description</label><input name="description" placeholder="What does the student get?">
+    <div class="grid-2">
+      <div><label>Cost (points)</label><input type="number" name="cost" min="1" value="200" required></div>
+      <div><label>Stock (-1 = unlimited)</label><input type="number" name="stock" value="-1" required></div>
+    </div>
+    <button class="btn green">Add Reward</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Catalog</h2>
+  <table>
+    <tr><th>Reward</th><th>Cost</th><th>Stock</th><th></th></tr>
+    {% for r in catalog %}
+    <tr>
+      <td>{{ r['icon'] }} {{ r['name'] }}</td>
+      <td>⭐ {{ r['cost'] }}</td>
+      <td>{{ 'Unlimited' if r['stock'] < 0 else r['stock'] }}</td>
+      <td>
+        <form method="post" action="/admin/rewards/{{ r['id'] }}/delete" style="display:inline"
+              onsubmit="return confirm('Remove {{ r['name'] }} from the catalog?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Redemption Requests</h2>
+  {% if requests %}
+  <table>
+    <tr><th>Student</th><th>Reward</th><th>Cost</th><th>Status</th><th>When</th><th>Actions</th></tr>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r['user_name'] }}</td>
+      <td>{{ r['icon'] }} {{ r['reward_name'] }}</td>
+      <td>⭐ {{ r['cost'] }}</td>
+      <td><span class="status-pill status-{{ r['status'] }}">{{ r['status'] }}</span></td>
+      <td class="muted">{{ r['redeemed_at'] }}</td>
+      <td>
+        {% if r['status'] == 'pending' %}
+        <form method="post" action="/admin/redemptions/{{ r['id'] }}/fulfilled" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn green small">Fulfill</button>
+        </form>
+        <form method="post" action="/admin/redemptions/{{ r['id'] }}/cancelled" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Cancel</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No redemptions yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

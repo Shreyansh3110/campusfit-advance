@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}AI Form Checker | CampusFit{% endblock %}
+
+{% block head %}
+<!-- MediaPipe dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+<style>
+    .workout-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    .video-wrapper {
+        position: relative;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,255,200,0.1);
+        background: #000;
+        width: 100%;
+        max-width: 640px;
+        aspect-ratio: 4/3;
+        border: 2px solid var(--border-color);
+    }
+    /* Hidden video element, we only show the canvas with drawings */
+    .input_video {
+        display: none;
+    }
+    .output_canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .workout-stats {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(10, 10, 15, 0.8);
+        backdrop-filter: blur(8px);
+        padding: 15px 25px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-color);
+        color: white;
+        text-align: center;
+    }
+    .workout-stats h2 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .workout-stats .rep-count {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        line-height: 1.1;
+        text-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+    }
+    .workout-controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        max-width: 640px;
+    }
+    .workout-controls .btn {
+        flex: 1;
+        min-width: 150px;
+    }
+    .feedback-toast {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 10, 15, 0.9);
+        color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        border: 1px solid var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .feedback-toast.show {
+        opacity: 1;
+    }
+    .loading-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(10, 10, 15, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+    .spinner {
+        width: 50px; height: 50px;
+        border: 4px solid rgba(0, 255, 200, 0.2);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📷 AI Form Checker (Live Rep Counter)</h2>
+        <p class="text-muted">Turn on your camera, step back, and start doing squats. The AI will track your form and count your reps automatically!</p>
+    </div>
+
+    <div class="workout-container">
+        <div class="video-wrapper">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div id="loadingText">Loading AI Model...</div>
+            </div>
+            
+            <video class="input_video"></video>
+            <canvas class="output_canvas" width="640" height="480"></canvas>
+            
+            <div class="workout-stats">
+                <h2>Squats</h2>
+                <div class="rep-count" id="repCount">0</div>
+            </div>
+            
+            <div class="feedback-toast" id="feedbackToast">Good Form!</div>
+        </div>
+
+        <div class="workout-controls">
+            <button class="btn btn-primary" id="btnStartCamera">Start Camera</button>
+            <button class="btn btn-secondary" id="btnStopCamera" style="display: none;">Stop Camera</button>
+            <form action="/activity" method="POST" id="saveWorkoutForm" style="flex: 1; display: flex; gap: 1rem; margin: 0;">
+                <!-- We will convert reps to minutes (e.g. 15 reps = 1 min activity) just for fun/demo -->
+                <input type="hidden" name="activity" value="AI Squats">
+                <input type="hidden" name="minutes" id="workoutMinutes" value="1">
+                <button type="submit" class="btn btn-success" id="btnSaveWorkout" disabled style="flex: 1; width: 100%;">Save & Log Activity</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='ai_tracker.js') }}"></script>
+{% endblock %}

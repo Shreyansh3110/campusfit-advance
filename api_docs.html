@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Interactive API • CampusFit{% endblock %}
+{% block content %}
+<div class="api-docs-container">
+  <div class="flex-between" style="align-items: flex-start; margin-bottom: 20px;">
+    <div>
+      <h1 style="margin-bottom: 6px;">⚡ CampusFit Interactive API</h1>
+      <p class="muted" style="margin: 0; font-size: 15px;">
+        RESTful API powering mobile applications, web clients, AI coaching assistant, and automated daily email dispatches.
+      </p>
+    </div>
+    <span class="pill" style="font-size: 13px; padding: 6px 14px; background: var(--accent-glow); color: var(--accent);">v2.0 • REST / JSON</span>
+  </div>
+
+  <!-- INTERACTIVE API TEST CONSOLE -->
+  <div class="card" style="border: 2px solid var(--accent); background: var(--surface);">
+    <div class="flex-between">
+      <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+        <span>🧪</span> Live API Test Console
+      </h2>
+      <span class="muted" style="font-size: 13px;">Execute live requests right from your browser</span>
+    </div>
+    <p style="font-size: 13.5px; color: var(--text-muted); margin: 8px 0 16px 0;">
+      Select an endpoint below, optionally customize the JSON payload, and click <strong>Execute Request</strong> to see live responses.
+      Authenticated endpoints automatically use your active session or optional Bearer token.
+    </p>
+
+    <div style="display: grid; grid-template-columns: 140px 1fr 120px; gap: 10px; align-items: center; margin-bottom: 12px;">
+      <select id="apiMethod" class="api-select" onchange="onEndpointSelectChange()">
+        <option value="POST">POST</option>
+        <option value="GET">GET</option>
+      </select>
+      <select id="apiEndpoint" class="api-select" onchange="onEndpointSelectChange()">
+        <option value="/api/coach/chat">/api/coach/chat (Interactive AI Coach)</option>
+        <option value="/api/notifications/send-daily-digest">/api/notifications/send-daily-digest (Email Daily Activity &amp; Tips)</option>
+        <option value="/api/activities">/api/activities (Log Activity)</option>
+        <option value="/api/activities/daily-summary">/api/activities/daily-summary (Daily Breakdown)</option>
+        <option value="/api/coach/tips">/api/coach/tips (Today's Coach Tips)</option>
+        <option value="/api/dashboard">/api/dashboard (Full App Snapshot)</option>
+        <option value="/api/auth/me">/api/auth/me (Current User Profile)</option>
+        <option value="/api/leaderboard">/api/leaderboard (Campus Rankings)</option>
+        <option value="/api/events">/api/events (Campus Sports Events)</option>
+        <option value="/api/rewards">/api/rewards (Rewards &amp; Balance)</option>
+        <option value="/api/notifications/history">/api/notifications/history (Email Logs)</option>
+      </select>
+      <button class="btn" style="height: 100%;" onclick="executeApiTest()">🚀 Send</button>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">
+        Request Body (JSON)
+      </label>
+      <textarea id="apiPayload" rows="4" style="width: 100%; box-sizing: border-box; font-family: monospace; font-size: 13px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text);">{"message": "What exercise should I do today based on my activity and streak?"}</textarea>
+    </div>
+
+    <!-- RESPONSE VIEWER -->
+    <div>
+      <div class="flex-between" style="margin-bottom: 6px;">
+        <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">
+          Live Response <span id="apiStatusBadge" style="display:none; margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 11px;"></span>
+        </span>
+        <small id="apiResponseTime" class="muted" style="font-size: 12px;"></small>
+      </div>
+      <pre id="apiOutput" style="background: #090d16; color: #38bdf8; padding: 14px; border-radius: 8px; max-height: 280px; overflow-y: auto; font-family: Consolas, monospace; font-size: 12.5px; border: 1px solid var(--border); white-space: pre-wrap; margin: 0;">Click "Send" above to run an interactive API call.</pre>
+    </div>
+  </div>
+
+  <!-- ENDPOINT REFERENCE DIRECTORY -->
+  <h2 style="margin: 30px 0 16px 0;">📚 API Endpoint Reference</h2>
+
+  <!-- COACH & TIPS -->
+  <div class="card api-card">
+    <div class="api-badge post">POST</div>
+    <code class="api-route">/api/coach/chat</code>
+    <p class="api-desc">
+      Interactive conversational AI coach endpoint. Takes a user message, inspects today's logged activities, streaks, and fitness goals, and generates personalized coaching guidance, workouts, and nutrition tips.
+    </p>
+    <div class="api-meta">
+      <strong>Auth:</strong> Bearer Token or Session Cookie • <strong>Payload:</strong> <code>{"message": "string"}</code>
+    </div>
+  </div>
+
+  <div class="card api-card">
+    <div class="api-badge get">GET</div>
+    <code class="api-route">/api/coach/tips</code>
+    <p class="api-desc">
+      Returns dynamic, algorithmic daily wellness tips (custom workout recommendation, nutrition guide, recovery instructions, and streak alert) tailored to the student's daily activity status.
+    </p>
+    <div class="api-meta">
+      <strong>Auth:</strong> Bearer Token or Session Cookie
+    </div>
+  </div>
+
+  <!-- EMAIL NOTIFICATIONS -->
+  <div class="card api-card">
+    <div class="api-badge post">POST</div>
+    <code class="api-route">/api/notifications/send-daily-digest</code>
+    <p class="api-desc">
+      Dispatches a responsive HTML email containing the student's daily activity scorecard, points, active streak, and personalized coach tips straight to their mailbox. In demo environments without SMTP, records safe simulation logs and provides full HTML preview.
+    </p>
+    <div class="api-meta">
+      <strong>Auth:</strong> Bearer Token or Session Cookie • <strong>Payload (Optional):</strong> <code>{"email": "student@campus.edu"}</code>
+    </div>
+  </div>
+
+  <div class="card api-card">
+    <div class="api-badge get">GET</div>
+    <code class="api-route">/api/notifications/history</code>
+    <p class="api-desc">
+      Retrieves audit logs of all emails and notifications dispatched to this user.
+    </p>
+  </div>
+
+  <!-- ACTIVITIES -->
+  <div class="card api-card">
+    <div class="api-badge post">POST</div>
+    <code class="api-route">/api/activities</code>
+    <p class="api-desc">
+      Logs a new physical activity for the student. Automatically calculates points, increments streaks, evaluates badge milestones, and returns <strong>instant AI coach feedback</strong>.
+    </p>
+    <div class="api-meta">
+      <strong>Auth:</strong> Bearer Token or Session • <strong>Payload:</strong> <code>{"activity": "Running", "minutes": 30}</code>
+    </div>
+  </div>
+
+  <div class="card api-card">
+    <div class="api-badge get">GET</div>
+    <code class="api-route">/api/activities/daily-summary</code>
+    <p class="api-desc">
+      Aggregates today's minutes, points, list of activities, and progress toward the 240-minute weekly campus target.
+    </p>
+  </div>
+
+  <!-- AUTHENTICATION -->
+  <div class="card api-card">
+    <div class="api-badge post">POST</div>
+    <code class="api-route">/api/auth/register</code>
+    <p class="api-desc">
+      Registers a student account and issues an API Bearer token for mobile apps.
+    </p>
+    <div class="api-meta">
+      <strong>Payload:</strong> <code>{"name": "string", "email": "string", "password": "string", "goal": "string"}</code>
+    </div>
+  </div>
+
+  <div class="card api-card">
+    <div class="api-badge post">POST</div>
+    <code class="api-route">/api/auth/login</code>
+    <p class="api-desc">
+      Validates student/admin credentials and issues a fresh 30-day Bearer token.
+    </p>
+    <div class="api-meta">
+      <strong>Payload:</strong> <code>{"email": "string", "password": "string"}</code>
+    </div>
+  </div>
+
+  <div class="card api-card">
+    <div class="api-badge get">GET</div>
+    <code class="api-route">/api/dashboard</code>
+    <p class="api-desc">
+      High-performance consolidated snapshot for mobile and frontend apps: user stats, streak, badges, 7-day chart data, and daily coach tips.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const samplePayloads = {
+  "/api/coach/chat": {
+    method: "POST",
+    body: JSON.stringify({"message": "What exercise should I do today based on my activity and streak?"}, null, 2)
+  },
+  "/api/notifications/send-daily-digest": {
+    method: "POST",
+    body: JSON.stringify({}, null, 2)
+  },
+  "/api/activities": {
+    method: "POST",
+    body: JSON.stringify({"activity": "Running", "minutes": 25}, null, 2)
+  },
+  "/api/activities/daily-summary": {
+    method: "GET",
+    body: ""
+  },
+  "/api/coach/tips": {
+    method: "GET",
+    body: ""
+  },
+  "/api/dashboard": {
+    method: "GET",
+    body: ""
+  },
+  "/api/auth/me": {
+    method: "GET",
+    body: ""
+  },
+  "/api/leaderboard": {
+    method: "GET",
+    body: ""
+  },
+  "/api/events": {
+    method: "GET",
+    body: ""
+  },
+  "/api/rewards": {
+    method: "GET",
+    body: ""
+  },
+  "/api/notifications/history": {
+    method: "GET",
+    body: ""
+  }
+};
+
+function onEndpointSelectChange() {
+  const ep = document.getElementById("apiEndpoint").value;
+  const cfg = samplePayloads[ep];
+  if (cfg) {
+    document.getElementById("apiMethod").value = cfg.method;
+    document.getElementById("apiPayload").value = cfg.body;
+  }
+}
+
+async function executeApiTest() {
+  const method = document.getElementById("apiMethod").value;
+  const endpoint = document.getElementById("apiEndpoint").value;
+  const payloadStr = document.getElementById("apiPayload").value.trim();
+  const out = document.getElementById("apiOutput");
+  const badge = document.getElementById("apiStatusBadge");
+  const timeLbl = document.getElementById("apiResponseTime");
+
+  out.textContent = "Executing request...";
+  badge.style.display = "none";
+  timeLbl.textContent = "";
+
+  const startTime = performance.now();
+  const opts = {
+    method: method,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  };
+
+  if (method === "POST" && payloadStr) {
+    try {
+      opts.body = JSON.stringify(JSON.parse(payloadStr));
+    } catch(err) {
+      out.textContent = "Invalid JSON in Request Body: " + err.message;
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch(endpoint, opts);
+    const duration = Math.round(performance.now() - startTime);
+    timeLbl.textContent = `${duration} ms`;
+
+    badge.style.display = "inline-block";
+    badge.textContent = `${res.status} ${res.statusText}`;
+    badge.style.background = res.ok ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)";
+    badge.style.color = res.ok ? "#10b981" : "#ef4444";
+
+    const json = await res.json();
+    out.textContent = JSON.stringify(json, null, 2);
+  } catch(err) {
+    out.textContent = "Network Error: " + err.message;
+  }
+}
+</script>
+{% endblock %}

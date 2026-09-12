@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if event else 'Add' }} Event • CampusFit{% endblock %}
+{% block content %}
+<div class="center card">
+  <h1>{{ '✏️ Edit' if event else '➕ Add' }} Campus Event</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Event Name</label>
+    <input name="name" placeholder="e.g. Campus Cricket Tournament" required value="{{ event['name'] if event else '' }}">
+    <label>Description</label>
+    <input name="description" placeholder="Short event description" required value="{{ event['description'] if event else '' }}">
+    <label>Event Date</label>
+    <input type="date" name="date" required value="{{ event['date'] if event else '' }}">
+    <label>Reward Points</label>
+    <input type="number" name="points" min="0" value="{{ event['points'] if event else 100 }}" required>
+    <button class="btn green">{{ 'Save Changes' if event else 'Add Event' }}</button>
+    <a class="btn orange" href="/admin/events">Cancel</a>
+  </form>
+</div>
+{% endblock %}

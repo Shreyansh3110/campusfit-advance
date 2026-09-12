@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard • CampusFit{% endblock %}
+{% block content %}
+<h1>📊 Admin Dashboard</h1>
+<div class="grid">
+  <div class="card"><div class="stat">{{ students }}</div>👥 Students</div>
+  <div class="card"><div class="stat">{{ activities }}</div>💪 Activities</div>
+  <div class="card"><div class="stat">{{ points }}</div>⭐ Total Points</div>
+  <div class="card"><div class="stat">{{ events }}</div>📅 Events</div>
+  <div class="card"><div class="stat">{{ teams }}</div>👥 Teams</div>
+</div>
+
+<div class="card">
+  <h2>Top Students</h2>
+  <table>
+    <tr><th>Student</th><th>Email</th><th>Goal</th><th>Minutes</th><th>Points</th></tr>
+    {% for r in rows %}
+    <tr><td>{{ r['avatar'] }} {{ r['name'] }}</td><td>{{ r['email'] }}</td><td>{{ r['goal'] }}</td><td>{{ r['minutes'] }}</td><td>⭐ {{ r['points'] }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Quick Actions</h2>
+  <a class="btn green" href="/admin/add_event">➕ Add Event</a>
+  <a class="btn" href="/admin/users">👥 Manage Users</a>
+  <a class="btn" href="/admin/events">📅 Manage Events</a>
+  <a class="btn" href="/admin/activities">💪 Manage Activities</a>
+  <a class="btn orange" href="/admin/challenges">⚔️ Manage Challenges</a>
+  <a class="btn" style="background:#9333ea" href="/admin/rewards">🎁 Manage Rewards</a>
+  <a class="btn ghost" href="/leaderboard">🏆 View Leaderboard</a>
+</div>
+{% endblock %}
