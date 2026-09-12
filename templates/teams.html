@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Teams • CampusFit{% endblock %}
+{% block content %}
+<h1>👥 Teams</h1>
+
+{% if my_team %}
+<div class="card">
+  <div class="flex-between">
+    <h2>{{ my_team['name'] }}</h2>
+    <form method="post" action="/teams/leave" onsubmit="return confirm('Leave this team?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn red small">Leave Team</button>
+    </form>
+  </div>
+  <p class="muted">{{ my_team['description'] }}</p>
+  <p>Total team points: ⭐ {{ my_team_points }}</p>
+  <table>
+    <tr><th>Member</th><th>Points</th></tr>
+    {% for m in my_team_members %}
+    <tr><td>{{ m['avatar'] }} {{ m['name'] }}</td><td>⭐ {{ m['points'] }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <h2>Create a Team</h2>
+  <form method="post" action="/teams/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Team Name</label><input name="name" required maxlength="40">
+    <label>Description</label><input name="description" maxlength="120" placeholder="What's your team about?">
+    <button class="btn green">Create Team</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>All Teams</h2>
+  <table>
+    <tr><th>Team</th><th>Members</th><th>Points</th><th></th></tr>
+    {% for t in all_teams %}
+    <tr>
+      <td>{{ t['name'] }}</td><td>{{ t['member_count'] }}</td><td>⭐ {{ t['points'] }}</td>
+      <td>
+        {% if not my_team %}
+        <form method="post" action="/teams/{{ t['id'] }}/join">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn small">Join</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

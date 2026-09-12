@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}CampusFit{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+{% block head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <div class="brand">🏃 Campus<span>Fit</span></div>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <div class="nav-links">
+    {% if session.get('role') == 'student' %}
+      <a class="navlink" href="/dashboard">🏠 Home</a>
+      <a class="navlink" href="/activity">💪 Log Manual Activity</a>
+      <a class="navlink" href="/live-workout">📷 AI Live Workout</a>
+      <a class="navlink" href="/leaderboard">🏆 Leaderboard</a>
+      <a class="navlink" href="/events">📅 Events</a>
+      <a class="navlink" href="/teams">👥 Teams</a>
+      <a class="navlink" href="/friends">🧑‍🤝‍🧑 Friends</a>
+      <a class="navlink" href="/challenges">⚔️ Challenges</a>
+      <a class="navlink" href="/rewards">🎁 Rewards</a>
+      <a class="navlink" href="/logout">Logout</a>
+    {% elif session.get('role') == 'admin' %}
+      <a class="navlink" href="/admin">📊 Dashboard</a>
+      <a class="navlink" href="/admin/users">👥 Users</a>
+      <a class="navlink" href="/admin/events">📅 Events</a>
+      <a class="navlink" href="/admin/activities">💪 Activities</a>
+      <a class="navlink" href="/admin/challenges">⚔️ Challenges</a>
+      <a class="navlink" href="/admin/rewards">🎁 Rewards</a>
+      <a class="navlink" href="/logout">Logout</a>
+    {% else %}
+      <a class="navlink" href="/login">Login</a>
+      <a class="navlink" href="/register">Register</a>
+    {% endif %}
+    <a class="navlink" href="/api/docs">⚡ API</a>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+  </div>
+</nav>
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}{% for m in messages %}<div class="alert">{{ m }}</div>{% endfor %}{% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<footer>CampusFit • SIH26196 • Fitness &amp; Sports • <a href="/api/docs" style="color:inherit; text-decoration:underline;">Interactive API</a></footer>
+
+{% if session.get('role') == 'student' %}
+<!-- Floating AI Coach Launcher -->
+<button class="coach-launcher-btn" onclick="toggleCoachDrawer()" title="Chat with AI Coach">
+  <span class="pulse-dot"></span>
+  <span class="icon">🤖</span>
+  <span class="label">AI Coach</span>
+</button>
+
+<!-- Sliding Interactive AI Coach Drawer -->
+<div id="coachDrawer" class="coach-drawer">
+  <div class="coach-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:22px;">🤖</span>
+      <div>
+        <strong style="font-size:15px; display:block;">CampusFit AI Coach</strong>
+        <small class="muted" style="font-size:11.5px;">Interactive Activity &amp; Wellness Assistant</small>
+      </div>
+    </div>
+    <button class="coach-close-btn" onclick="toggleCoachDrawer()">✕</button>
+  </div>
+  <div id="coachChatBody" class="coach-chat-body">
+    <div class="coach-bubble coach-assistant">
+      Hey there! 👋 I am your interactive AI Fitness Coach. I monitor your daily activity, protect your streak, and give you personalized tips for workouts and nutrition. Ask me anything or try a prompt below!
+    </div>
+    <div class="quick-prompts-row" id="coachQuickPrompts">
+      <button class="chip-btn" onclick="askCoachPrompt('Give me a quick 15-min dorm workout')">⚡ 15m Dorm Workout</button>
+      <button class="chip-btn" onclick="askCoachPrompt('What should I eat at the campus canteen today?')">🥗 Canteen Nutrition</button>
+      <button class="chip-btn" onclick="askCoachPrompt('Check my streak and today\'s activity')">🔥 Streak &amp; Activity</button>
+      <button class="chip-btn" onclick="askCoachPrompt('Email me today\'s activity summary and tips')">✉️ Email My Report</button>
+    </div>
+  </div>
+  <div class="coach-input-bar">
+    <input type="text" id="coachInput" placeholder="Ask your coach anything..." onkeydown="if(event.key==='Enter') sendCoachMessage()">
+    <button id="coachSendBtn" onclick="sendCoachMessage()">Send</button>
+  </div>
+</div>
+{% endif %}
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

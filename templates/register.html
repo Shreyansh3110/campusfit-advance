@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Register • CampusFit{% endblock %}
+{% block content %}
+<div class="center card">
+  <h1>Create Student Account</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Name</label><input name="name" required maxlength="60">
+    <label>Email</label><input type="email" name="email" required maxlength="120">
+    <label>Password</label><input type="password" name="password" required minlength="6">
+    <label>Avatar</label>
+    <select name="avatar">
+      <option value="🙂">🙂 Smiley</option>
+      <option value="🏃">🏃 Runner</option>
+      <option value="🚴">🚴 Cyclist</option>
+      <option value="🧘">🧘 Yogi</option>
+      <option value="🏋️">🏋️ Lifter</option>
+      <option value="⚽">⚽ Athlete</option>
+    </select>
+    <label>Fitness Goal</label>
+    <select name="goal">
+      <option>Improve Fitness</option><option>Lose Weight</option>
+      <option>Build Strength</option><option>Stay Active</option>
+    </select>
+    <button>Register</button>
+  </form>
+  <p class="muted">Already have an account? <a href="/login">Login</a></p>
+</div>
+{% endblock %}

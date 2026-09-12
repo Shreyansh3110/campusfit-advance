@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Friends • CampusFit{% endblock %}
+{% block content %}
+<h1>🧑‍🤝‍🧑 Friends</h1>
+
+<div class="card">
+  <h2>Add a Friend</h2>
+  <form method="post" action="/friends/add">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Friend's Email</label>
+    <input type="email" name="email" required placeholder="friend@campus.edu">
+    <button class="btn green">Send Request</button>
+  </form>
+</div>
+
+{% if pending %}
+<div class="card">
+  <h2>Pending Requests</h2>
+  <table>
+    <tr><th>From</th><th></th></tr>
+    {% for p in pending %}
+    <tr>
+      <td>{{ p['avatar'] }} {{ p['name'] }}</td>
+      <td>
+        <form method="post" action="/friends/{{ p['fid'] }}/accept" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn small green">Accept</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>My Friends ({{ friends|length }})</h2>
+  {% if friends %}
+  <table>
+    <tr><th>Friend</th><th>Points</th><th>Streak</th></tr>
+    {% for f in friends %}
+    <tr><td>{{ f['avatar'] }} {{ f['name'] }}</td><td>⭐ {{ f['points'] }}</td><td>🔥 {{ f['streak'] }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No friends yet — add one by email above!</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Friend Activity Feed</h2>
+  {% if feed %}
+  <table>
+    <tr><th>Who</th><th>Activity</th><th>Minutes</th><th>When</th></tr>
+    {% for a in feed %}
+    <tr><td>{{ a['avatar'] }} {{ a['name'] }}</td><td>{{ a['activity'] }}</td><td>{{ a['minutes'] }}</td><td class="muted">{{ a['created_at'] }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Nothing yet from your friends.</p>
+  {% endif %}
+</div>
+{% endblock %}

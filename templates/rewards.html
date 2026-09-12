@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Rewards • CampusFit{% endblock %}
+{% block content %}
+<h1>🎁 Rewards Store</h1>
+
+<div class="balance-banner">
+  <div>
+    <div class="muted" style="color:rgba(255,255,255,0.85)">Your redeemable balance</div>
+    <div class="amt">⭐ {{ balance }}</div>
+  </div>
+  <div style="color:rgba(255,255,255,0.9);font-size:13.5px;max-width:280px">
+    Earn points by logging activities and joining events — spend them here on real campus perks.
+  </div>
+</div>
+
+<div class="reward-grid">
+  {% for r in catalog %}
+  <div class="card reward-card">
+    <div class="icon">{{ r['icon'] }}</div>
+    <h2>{{ r['name'] }}</h2>
+    <p class="muted" style="flex:1">{{ r['description'] }}</p>
+    <div class="cost">⭐ {{ r['cost'] }} points</div>
+    {% if r['stock'] >= 0 %}<p class="muted" style="font-size:12.5px">{{ r['stock'] }} left</p>{% endif %}
+    <form method="post" action="/rewards/{{ r['id'] }}/redeem">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn green" {{ 'disabled' if balance < r['cost'] or r['stock']==0 else '' }}>
+        {{ 'Out of stock' if r['stock']==0 else ('Redeem' if balance >= r['cost'] else 'Not enough points') }}
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h2>My Redemption History</h2>
+  {% if history %}
+  <table>
+    <tr><th>Reward</th><th>Cost</th><th>Status</th><th>When</th></tr>
+    {% for h in history %}
+    <tr>
+      <td>{{ h['icon'] }} {{ h['name'] }}</td>
+      <td>⭐ {{ h['cost'] }}</td>
+      <td><span class="status-pill status-{{ h['status'] }}">{{ h['status'] }}</span></td>
+      <td class="muted">{{ h['redeemed_at'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No redemptions yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

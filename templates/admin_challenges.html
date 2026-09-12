@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Manage Challenges • CampusFit{% endblock %}
+{% block content %}
+<h1>⚔️ Manage Challenges</h1>
+
+<div class="card">
+  <h2>Create a Challenge</h2>
+  <form method="post" action="/admin/challenges/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Name</label><input name="name" required>
+    <label>Description</label><input name="description" required>
+    <div class="grid-2">
+      <div><label>Start Date</label><input type="date" name="start_date" required></div>
+      <div><label>End Date</label><input type="date" name="end_date" required></div>
+    </div>
+    <label>Target Points (per team)</label><input type="number" name="target_points" min="1" value="500" required>
+    <button class="btn green">Create Challenge</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Existing Challenges</h2>
+  <table>
+    <tr><th>Name</th><th>Window</th><th>Target</th><th></th></tr>
+    {% for c in challenges %}
+    <tr>
+      <td>{{ c['name'] }}</td><td>{{ c['start_date'] }} → {{ c['end_date'] }}</td><td>{{ c['target_points'] }}</td>
+      <td>
+        <form method="post" action="/admin/challenges/{{ c['id'] }}/delete" style="display:inline"
+              onsubmit="return confirm('Delete this challenge?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

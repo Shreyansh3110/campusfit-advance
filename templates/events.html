@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Events • CampusFit{% endblock %}
+{% block content %}
+<h1>📅 Campus Events</h1>
+<div class="grid-2">
+  {% for e in events %}
+  <div class="card">
+    <h2>{{ e['name'] }}</h2>
+    <p>{{ e['description'] }}</p>
+    <p>📅 {{ e['date'] }}<br>⭐ {{ e['points'] }} points</p>
+    {% if session.get('role') == 'student' %}
+      {% if e['id'] in regs %}
+        <span class="muted">✅ Registered</span>
+      {% else %}
+        <a class="btn green" href="/join_event/{{ e['id'] }}">Join Event</a>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

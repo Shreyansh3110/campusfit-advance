@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard • CampusFit{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🏆 Campus Leaderboard</h1>
+  <div class="tabs">
+    <a href="/leaderboard" class="{{ 'active' if view=='students' else '' }}">👤 Students</a>
+    <a href="/leaderboard?view=teams" class="{{ 'active' if view=='teams' else '' }}">👥 Teams</a>
+  </div>
+  {% if view == 'teams' %}
+  <table>
+    <tr><th>Rank</th><th>Team</th><th>Members</th><th>Points</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td class="{{ 'rank-1' if loop.index==1 else ('rank-2' if loop.index==2 else ('rank-3' if loop.index==3 else '')) }}">#{{ loop.index }}</td>
+      <td>{{ r['name'] }}</td><td>{{ r['members'] }}</td><td>⭐ {{ r['points'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <table>
+    <tr><th>Rank</th><th>Student</th><th>Team</th><th>Points</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td class="{{ 'rank-1' if loop.index==1 else ('rank-2' if loop.index==2 else ('rank-3' if loop.index==3 else '')) }}">#{{ loop.index }}</td>
+      <td>{{ r['avatar'] }} {{ r['name'] }}</td><td class="muted">{{ r['team_name'] or '—' }}</td><td>⭐ {{ r['points'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

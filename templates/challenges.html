@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Challenges • CampusFit{% endblock %}
+{% block content %}
+<h1>⚔️ Team Challenges</h1>
+{% if not my_team %}
+<div class="card"><p class="muted">Join or create a <a href="/teams">team</a> to take part in challenges.</p></div>
+{% endif %}
+
+{% if challenges %}
+<div class="grid-2">
+  {% for c in challenges %}
+  <div class="card">
+    <h2>{{ c['name'] }}</h2>
+    <p class="muted">{{ c['description'] }}</p>
+    <p>📅 {{ c['start_date'] }} → {{ c['end_date'] }} • 🎯 Target: {{ c['target_points'] }} pts</p>
+    {% if c['team_progress'] is not none %}
+      <div class="bar"><div class="fill" style="width:{{ c['pct'] }}%"></div></div>
+      <p>{{ c['team_progress'] }}/{{ c['target_points'] }} pts • {{ c['pct'] }}%</p>
+    {% endif %}
+    <table>
+      <tr><th>Team</th><th>Progress</th></tr>
+      {% for t in c['leaderboard'] %}
+      <tr><td>{{ t['name'] }}</td><td>⭐ {{ t['progress'] }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card"><p class="muted">No active challenges right now. Check back soon!</p></div>
+{% endif %}
+{% endblock %}

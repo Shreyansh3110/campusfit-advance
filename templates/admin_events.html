@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Manage Events • CampusFit{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="flex-between">
+    <h1>📅 Manage Events</h1>
+    <a class="btn green" href="/admin/add_event">➕ Add Event</a>
+  </div>
+  <table>
+    <tr><th>Name</th><th>Date</th><th>Points</th><th>Registered</th><th>Actions</th></tr>
+    {% for e in events %}
+    <tr>
+      <td>{{ e['name'] }}</td><td>{{ e['date'] }}</td><td>⭐ {{ e['points'] }}</td>
+      <td>{{ e['regs'] }}</td>
+      <td>
+        <a class="btn small" href="/admin/events/{{ e['id'] }}/edit">Edit</a>
+        <form method="post" action="/admin/events/{{ e['id'] }}/delete" style="display:inline"
+              onsubmit="return confirm('Delete event {{ e['name'] }}?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="btn red small">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

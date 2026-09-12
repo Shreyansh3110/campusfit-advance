@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Log Activity • CampusFit{% endblock %}
+{% block content %}
+<div class="center card">
+  <h1>Log Activity 💪</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Activity</label>
+    <select name="activity">
+      <option>Walking</option><option>Running</option><option>Cycling</option>
+      <option>Yoga</option><option>Gym Workout</option><option>Sports</option>
+    </select>
+    <label>Minutes</label>
+    <input type="number" name="minutes" min="1" max="300" required>
+    <button>Save Activity</button>
+  </form>
+</div>
+{% endblock %}
