@@ -1,5 +1,7 @@
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import secrets
+import os
 from datetime import datetime, date, timedelta
 
 DB = "campusfit.db"
@@ -8,11 +10,61 @@ DB = "campusfit.db"
 # Connection helper
 # ---------------------------------------------------------------------------
 
+class PostgresRowWrapper(dict):
+    def __init__(self, d):
+        super().__init__(d)
+        self._vals = list(d.values())
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._vals[key]
+        return super().__getitem__(key)
+
+class PostgresCursorWrapper:
+    def __init__(self, cur):
+        self.cur = cur
+    def fetchone(self):
+        row = self.cur.fetchone()
+        return PostgresRowWrapper(row) if row else None
+    def fetchall(self):
+        return [PostgresRowWrapper(row) for row in self.cur.fetchall()]
+    @property
+    def lastrowid(self):
+        return getattr(self.cur, '_last_id', None)
+    def __iter__(self):
+        for row in self.cur:
+            yield PostgresRowWrapper(row)
+
+class PostgresConnWrapper:
+    def __init__(self, dsn):
+        self.conn = psycopg2.connect(dsn)
+        self.conn.autocommit = True
+    def execute(self, query, params=()):
+        q = query.replace('?', '%s')
+        is_insert = q.strip().upper().startswith('INSERT')
+        if is_insert and 'RETURNING' not in q.upper():
+            q += ' RETURNING id'
+        cur = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(q, params)
+        pw = PostgresCursorWrapper(cur)
+        if is_insert:
+            try:
+                pw.cur._last_id = cur.fetchone()['id']
+            except:
+                pw.cur._last_id = None
+        return pw
+    def executemany(self, query, params_list):
+        q = query.replace('?', '%s')
+        cur = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.executemany(q, params_list)
+        return PostgresCursorWrapper(cur)
+    def commit(self):
+        pass
+    def close(self):
+        self.conn.close()
+
 def get_db():
-    conn = sqlite3.connect(DB)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    dsn = os.environ.get('DATABASE_URL')
+    return PostgresConnWrapper(dsn)
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +94,7 @@ BADGES = {
 def init_db():
     c = get_db()
     c.execute("""CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
@@ -56,7 +108,7 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS activities(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         activity TEXT,
         minutes INTEGER,
@@ -65,17 +117,17 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS events(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT, description TEXT, date TEXT, points INTEGER
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS event_registrations(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER, event_id INTEGER, UNIQUE(user_id, event_id)
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS teams(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT UNIQUE NOT NULL,
         description TEXT,
         created_by INTEGER,
@@ -83,7 +135,7 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS friendships(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER, friend_id INTEGER,
         status TEXT DEFAULT 'pending',
         created_at TEXT,
@@ -91,7 +143,7 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS challenges(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT, description TEXT,
         start_date TEXT, end_date TEXT,
         target_points INTEGER,
@@ -99,20 +151,20 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS challenge_teams(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         challenge_id INTEGER, team_id INTEGER,
         UNIQUE(challenge_id, team_id)
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS user_badges(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER, badge_code TEXT,
         earned_at TEXT,
         UNIQUE(user_id, badge_code)
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS rewards(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
         cost INTEGER NOT NULL,
@@ -121,14 +173,14 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS redemptions(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER, reward_id INTEGER, cost INTEGER,
         status TEXT DEFAULT 'pending',
         redeemed_at TEXT
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS api_tokens(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         token TEXT UNIQUE NOT NULL,
         created_at TEXT NOT NULL,
@@ -137,7 +189,7 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS email_logs(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         recipient TEXT NOT NULL,
         subject TEXT NOT NULL,
@@ -148,7 +200,7 @@ def init_db():
     )""")
 
     c.execute("""CREATE TABLE IF NOT EXISTS coach_messages(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         sender TEXT NOT NULL,
         message TEXT NOT NULL,
@@ -241,7 +293,7 @@ def award_badge(conn, user_id, code):
         conn.execute("INSERT INTO user_badges(user_id, badge_code, earned_at) VALUES(?,?,?)",
                      (user_id, code, datetime.now().isoformat(timespec="minutes")))
         return True
-    except sqlite3.IntegrityError:
+    except psycopg2.IntegrityError:
         return False  # already earned
 
 
