@@ -7,12 +7,34 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2.2">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 {% block head %}{% endblock %}
+
+<style>
+  @keyframes drawHeartbeat {
+    0% { stroke-dashoffset: 100; }
+    50% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -100; }
+  }
+  .heartbeat-line {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawHeartbeat 2.5s infinite linear;
+  }
+  /* Ensure particles stay behind everything */
+  #particles-js {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+</style>
+
 </head>
 <body>
+<div id="particles-js"></div>
 <nav>
   <div class="brand" style="display: flex; align-items: center; gap: 8px;">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px var(--accent-glow));">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+      <polyline class="heartbeat-line" points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
     </svg>
     Campus<span>Fit</span>
   </div>
@@ -91,7 +113,7 @@
 </div>
 {% block footer %}
 <footer style="margin-top: 50px; padding: 30px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);">
-  <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-style: italic; font-weight: 500; font-size: 15px; color: var(--muted); letter-spacing: 0.5px; opacity: 0.8;">
+  <div id="typewriter-quote" style="font-family: 'Plus Jakarta Sans', sans-serif; font-style: italic; font-weight: 500; font-size: 15px; color: var(--accent); letter-spacing: 0.5px; text-shadow: 0 0 5px var(--accent-glow); height: 20px;">
     {% if request.endpoint == 'dashboard' %}
       "Your only competition is who you were yesterday."
     {% elif request.endpoint == 'leaderboard' %}
@@ -154,5 +176,78 @@
 
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 {% block scripts %}{% endblock %}
+
+<!-- Pro SaaS Upgrade Pack Scripts -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize Particles.js (Cyberpunk Network)
+    particlesJS('particles-js', {
+      "particles": {
+        "number": { "value": 40, "density": { "enable": true, "value_area": 800 } },
+        "color": { "value": "#22d3ee" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.3, "random": false },
+        "size": { "value": 2, "random": true },
+        "line_linked": { "enable": true, "distance": 150, "color": "#22d3ee", "opacity": 0.2, "width": 1 },
+        "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "out_mode": "out" }
+      },
+      "interactivity": {
+        "detect_on": "window",
+        "events": {
+          "onhover": { "enable": true, "mode": "grab" },
+          "onclick": { "enable": true, "mode": "push" }
+        },
+        "modes": {
+          "grab": { "distance": 140, "line_linked": { "opacity": 0.5 } }
+        }
+      },
+      "retina_detect": true
+    });
+
+    // 2. Typewriter Effect for Footer Quote
+    const quoteEl = document.getElementById('typewriter-quote');
+    if (quoteEl) {
+      const text = quoteEl.innerText.trim();
+      quoteEl.innerText = '';
+      let i = 0;
+      function typeWriter() {
+        if (i < text.length) {
+          quoteEl.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(typeWriter, 50); // Typing speed
+        }
+      }
+      setTimeout(typeWriter, 500); // Delay before typing starts
+    }
+
+    // 3. Victory Confetti! (Only on Dashboard if Streak >= 3)
+    // We check if the current URL is dashboard and if the body has the fire mode accent
+    if (window.location.pathname === '/dashboard') {
+      setTimeout(() => {
+        // Fire confetti!
+        var duration = 3 * 1000;
+        var animationEnd = Date.now() + duration;
+        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+        function randomInRange(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+
+        var interval = setInterval(function() {
+          var timeLeft = animationEnd - Date.now();
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+          var particleCount = 50 * (timeLeft / duration);
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+      }, 800); // 800ms delay after load
+    }
+  });
+</script>
+
 </body>
 </html>
