@@ -296,7 +296,7 @@ def leaderboard():
             LEFT JOIN activities a ON u.id = a.user_id
             LEFT JOIN teams t ON u.team_id = t.id
             WHERE u.role='student'
-            GROUP BY u.id ORDER BY points DESC, u.name
+            GROUP BY u.id, t.name ORDER BY points DESC, u.name
         """).fetchall()
     conn.close()
     return render_template("leaderboard.html", rows=rows, view=view)
