@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to CampusFit</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+    
+    :root {
+      --bg: #09090b;
+      --text: #fafafa;
+      --accent: #22d3ee;
+      --accent-glow: rgba(34, 211, 238, 0.4);
+      --muted: #a1a1aa;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    /* Grid Background Effect */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Radial Glow Effect */
+    body::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+      opacity: 0;
+      animation: pulseGlow 4s ease-out forwards;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: scale(0.5);
+      animation: popIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+    }
+
+    .brand-title {
+      font-size: 56px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -1px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.6s;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .unique-line {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 12px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.0s;
+    }
+
+    .slogan {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 400px;
+      margin: 16px auto 0;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.4s;
+    }
+
+    .click-prompt {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeInBlink 2s ease-in-out infinite 2.5s;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.5); }
+      70% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideUpFade {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+      50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes fadeInBlink {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body onclick="window.location.href='/login'">
+
+  <div class="content-wrapper">
+    <div class="logo-icon">🏃‍♂️</div>
+    <h1 class="brand-title">Campus<span>Fit</span></h1>
+    <div class="unique-line">Unleash Your Inner Athlete.</div>
+    <div class="slogan">Level up your fitness journey, compete with friends, and turn every workout into a rewarding adventure.</div>
+  </div>
+
+  <div class="click-prompt">Click anywhere to continue</div>
+
+  <script>
+    // In case the user presses any key (like Enter), proceed to login.
+    document.addEventListener("keydown", function() {
+      window.location.href = "/login";
+    });
+  </script>
+</body>
+</html>
