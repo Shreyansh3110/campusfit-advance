@@ -102,7 +102,7 @@ def home():
         return redirect("/admin")
     if session.get("uid"):
         return redirect("/dashboard")
-    return redirect("/login")
+    return render_template("splash.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
