@@ -1,24 +1,131 @@
 {% extends "base.html" %}
-{% block title %}Dashboard • CampusFit{% endblock %}
+{% block title %}Dashboard • CampusFit
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+<script>
+  // Fire Mode logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const streak = parseInt('{{ streak }}') || 0;
+    if (streak >= 3) {
+      document.body.style.setProperty('--accent', '#ff4500');
+      document.body.style.setProperty('--accent-glow', 'rgba(255, 69, 0, 0.4)');
+      document.body.style.setProperty('--blue', '#ff8c00');
+      // Add fire emoji indicator
+      const brand = document.querySelector('.brand');
+      if (brand) brand.innerHTML += ' <span style="font-size:16px;">?? On Fire!</span>';
+    }
+
+    // Heatmap generation
+    const heatmapContainer = document.getElementById('cyber-heatmap');
+    if (heatmapContainer) {
+      for (let i = 0; i < 98; i++) {
+        const box = document.createElement('div');
+        box.className = 'heat-box';
+        // Mock recent activity: higher chance of being active recently (towards end of grid)
+        const isRecent = i > 70;
+        const isActive = Math.random() < (isRecent ? 0.7 : 0.2);
+        
+        if (isActive) {
+          const intensity = Math.floor(Math.random() * 3) + 1; // 1 to 3
+          box.classList.add('level-' + intensity);
+        }
+        heatmapContainer.appendChild(box);
+      }
+    }
+    
+    // Rings Animation
+    setTimeout(() => {
+      document.querySelectorAll('.ring-circle-progress').forEach(ring => {
+        const percent = ring.getAttribute('data-percent');
+        const circumference = parseFloat(ring.getAttribute('stroke-dasharray'));
+        const offset = circumference - (percent / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+      });
+    }, 300);
+  });
+</script>
+<style>
+  /* Heatmap Styles */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .heat-box {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .heat-box:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px var(--accent);
+  }
+  .heat-box.level-1 { background: rgba(34, 211, 238, 0.4); }
+  .heat-box.level-2 { background: rgba(34, 211, 238, 0.7); box-shadow: 0 0 8px rgba(34, 211, 238, 0.5); }
+  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
+
+  /* Rings Styles */
+  .rings-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+  .ring-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+  .ring-circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.1);
+    stroke-width: 12;
+  }
+  .ring-circle-progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ring-1 { stroke: #22d3ee; filter: drop-shadow(0 0 8px #22d3ee); }
+  .ring-2 { stroke: #34d399; filter: drop-shadow(0 0 8px #34d399); }
+  .ring-3 { stroke: #f472b6; filter: drop-shadow(0 0 8px #f472b6); }
+  
+  .rings-labels {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .ring-legend { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 2px 0; }
+  .c-1 { color: #22d3ee; }
+  .c-2 { color: #34d399; }
+  .c-3 { color: #f472b6; }
+</style>
+
+{% endblock %}
 {% block content %}
 <h1 class="animate-fade-in-up delay-1" style="font-weight: 800; font-size: 32px; margin-bottom: 24px;">
   <span class="avatar" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--accent); padding: 4px; display: inline-block;">{{ u['avatar'] }}</span> Hello, {{ u['name'] }}
 </h1>
 
 <div class="stats-grid animate-fade-in-up delay-2">
-  <div class="glass-card stat-box">
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
     <div class="stat-title">⭐ Points</div>
     <div class="stat-value counter" data-target="{{ points }}">0</div>
   </div>
-  <div class="glass-card stat-box">
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
     <div class="stat-title">🏅 Level</div>
     <div class="stat-value">{{ level }}</div>
   </div>
-  <div class="glass-card stat-box">
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
     <div class="stat-title">⏱️ Minutes</div>
     <div class="stat-value counter" data-target="{{ minutes }}">0</div>
   </div>
-  <div class="glass-card stat-box">
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
     <div class="stat-title">🔥 Streak</div>
     <div class="stat-value counter" data-target="{{ streak }}">0</div>
   </div>
@@ -35,6 +142,42 @@
   </div>
 </div>
 
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+  
+  <!-- Apple Watch Rings -->
+  <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="5" style="padding: 28px; text-align: center;">
+    <h2 style="margin-top:0; font-size: 18px; font-weight: 700;">Activity Rings</h2>
+    <div class="rings-container">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <!-- Outer (Minutes) -->
+        <circle class="ring-circle-bg" cx="100" cy="100" r="80"></circle>
+        <circle class="ring-circle-progress ring-1" cx="100" cy="100" r="80" stroke-dasharray="502" stroke-dashoffset="502" data-percent="{{ [100, (minutes/240)*100]|min }}"></circle>
+        
+        <!-- Middle (Points) -->
+        <circle class="ring-circle-bg" cx="100" cy="100" r="60"></circle>
+        <circle class="ring-circle-progress ring-2" cx="100" cy="100" r="60" stroke-dasharray="377" stroke-dashoffset="377" data-percent="{{ [100, (points/1000)*100]|min }}"></circle>
+        
+        <!-- Inner (Streak) -->
+        <circle class="ring-circle-bg" cx="100" cy="100" r="40"></circle>
+        <circle class="ring-circle-progress ring-3" cx="100" cy="100" r="40" stroke-dasharray="251" stroke-dashoffset="251" data-percent="{{ [100, (streak/7)*100]|min }}"></circle>
+      </svg>
+      <div class="rings-labels">
+        <div class="ring-legend c-1">Move</div>
+        <div class="ring-legend c-2">Score</div>
+        <div class="ring-legend c-3">Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cyberpunk Heatmap -->
+  <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="5" style="padding: 28px;">
+    <h2 style="margin-top:0; font-size: 18px; font-weight: 700;">Consistency Heatmap</h2>
+    <p class="muted" style="font-size:13px; margin: 4px 0 0 0;">Your last 98 days of activity</p>
+    <div id="cyber-heatmap" class="heatmap-grid"></div>
+  </div>
+
+</div>
 <div class="glass-card animate-fade-in-up delay-4" style="margin-bottom: 24px; padding: 28px;">
   <div class="flex-between" style="margin-bottom: 20px;">
     <h2 style="margin:0; font-size: 20px; font-weight: 700;">Weekly Activity Goal</h2>
@@ -223,6 +366,113 @@
   <p class="muted">No activities yet. Start your first activity!</p>
   {% endif %}
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+<script>
+  // Fire Mode logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const streak = parseInt('{{ streak }}') || 0;
+    if (streak >= 3) {
+      document.body.style.setProperty('--accent', '#ff4500');
+      document.body.style.setProperty('--accent-glow', 'rgba(255, 69, 0, 0.4)');
+      document.body.style.setProperty('--blue', '#ff8c00');
+      // Add fire emoji indicator
+      const brand = document.querySelector('.brand');
+      if (brand) brand.innerHTML += ' <span style="font-size:16px;">?? On Fire!</span>';
+    }
+
+    // Heatmap generation
+    const heatmapContainer = document.getElementById('cyber-heatmap');
+    if (heatmapContainer) {
+      for (let i = 0; i < 98; i++) {
+        const box = document.createElement('div');
+        box.className = 'heat-box';
+        // Mock recent activity: higher chance of being active recently (towards end of grid)
+        const isRecent = i > 70;
+        const isActive = Math.random() < (isRecent ? 0.7 : 0.2);
+        
+        if (isActive) {
+          const intensity = Math.floor(Math.random() * 3) + 1; // 1 to 3
+          box.classList.add('level-' + intensity);
+        }
+        heatmapContainer.appendChild(box);
+      }
+    }
+    
+    // Rings Animation
+    setTimeout(() => {
+      document.querySelectorAll('.ring-circle-progress').forEach(ring => {
+        const percent = ring.getAttribute('data-percent');
+        const circumference = parseFloat(ring.getAttribute('stroke-dasharray'));
+        const offset = circumference - (percent / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+      });
+    }, 300);
+  });
+</script>
+<style>
+  /* Heatmap Styles */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .heat-box {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .heat-box:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px var(--accent);
+  }
+  .heat-box.level-1 { background: rgba(34, 211, 238, 0.4); }
+  .heat-box.level-2 { background: rgba(34, 211, 238, 0.7); box-shadow: 0 0 8px rgba(34, 211, 238, 0.5); }
+  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
+
+  /* Rings Styles */
+  .rings-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+  .ring-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+  .ring-circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.1);
+    stroke-width: 12;
+  }
+  .ring-circle-progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ring-1 { stroke: #22d3ee; filter: drop-shadow(0 0 8px #22d3ee); }
+  .ring-2 { stroke: #34d399; filter: drop-shadow(0 0 8px #34d399); }
+  .ring-3 { stroke: #f472b6; filter: drop-shadow(0 0 8px #f472b6); }
+  
+  .rings-labels {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .ring-legend { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 2px 0; }
+  .c-1 { color: #22d3ee; }
+  .c-2 { color: #34d399; }
+  .c-3 { color: #f472b6; }
+</style>
+
 {% endblock %}
 
 {% block scripts %}
@@ -258,4 +508,111 @@
     });
   });
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+<script>
+  // Fire Mode logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const streak = parseInt('{{ streak }}') || 0;
+    if (streak >= 3) {
+      document.body.style.setProperty('--accent', '#ff4500');
+      document.body.style.setProperty('--accent-glow', 'rgba(255, 69, 0, 0.4)');
+      document.body.style.setProperty('--blue', '#ff8c00');
+      // Add fire emoji indicator
+      const brand = document.querySelector('.brand');
+      if (brand) brand.innerHTML += ' <span style="font-size:16px;">?? On Fire!</span>';
+    }
+
+    // Heatmap generation
+    const heatmapContainer = document.getElementById('cyber-heatmap');
+    if (heatmapContainer) {
+      for (let i = 0; i < 98; i++) {
+        const box = document.createElement('div');
+        box.className = 'heat-box';
+        // Mock recent activity: higher chance of being active recently (towards end of grid)
+        const isRecent = i > 70;
+        const isActive = Math.random() < (isRecent ? 0.7 : 0.2);
+        
+        if (isActive) {
+          const intensity = Math.floor(Math.random() * 3) + 1; // 1 to 3
+          box.classList.add('level-' + intensity);
+        }
+        heatmapContainer.appendChild(box);
+      }
+    }
+    
+    // Rings Animation
+    setTimeout(() => {
+      document.querySelectorAll('.ring-circle-progress').forEach(ring => {
+        const percent = ring.getAttribute('data-percent');
+        const circumference = parseFloat(ring.getAttribute('stroke-dasharray'));
+        const offset = circumference - (percent / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
+      });
+    }, 300);
+  });
+</script>
+<style>
+  /* Heatmap Styles */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .heat-box {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .heat-box:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px var(--accent);
+  }
+  .heat-box.level-1 { background: rgba(34, 211, 238, 0.4); }
+  .heat-box.level-2 { background: rgba(34, 211, 238, 0.7); box-shadow: 0 0 8px rgba(34, 211, 238, 0.5); }
+  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
+
+  /* Rings Styles */
+  .rings-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+  }
+  .ring-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+  .ring-circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.1);
+    stroke-width: 12;
+  }
+  .ring-circle-progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ring-1 { stroke: #22d3ee; filter: drop-shadow(0 0 8px #22d3ee); }
+  .ring-2 { stroke: #34d399; filter: drop-shadow(0 0 8px #34d399); }
+  .ring-3 { stroke: #f472b6; filter: drop-shadow(0 0 8px #f472b6); }
+  
+  .rings-labels {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .ring-legend { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 2px 0; }
+  .c-1 { color: #22d3ee; }
+  .c-2 { color: #34d399; }
+  .c-3 { color: #f472b6; }
+</style>
+
 {% endblock %}
