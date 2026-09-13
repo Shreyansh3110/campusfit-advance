@@ -13,31 +13,69 @@
   <div class="brand">🏃 Campus<span>Fit</span></div>
   <button class="hamburger" onclick="toggleNav()">☰</button>
   <div class="nav-links">
-    {% if session.get('role') == 'student' %}
-      <a class="navlink" href="/dashboard">🏠 Home</a>
-      <a class="navlink" href="/activity">💪 Log Manual Activity</a>
-      <a class="navlink" href="/live-workout">📷 AI Live Workout</a>
-      <a class="navlink" href="/leaderboard">🏆 Leaderboard</a>
-      <a class="navlink" href="/events">📅 Events</a>
-      <a class="navlink" href="/teams">👥 Teams</a>
-      <a class="navlink" href="/friends">🧑‍🤝‍🧑 Friends</a>
-      <a class="navlink" href="/challenges">⚔️ Challenges</a>
-      <a class="navlink" href="/rewards">🎁 Rewards</a>
-      <a class="navlink" href="/logout">Logout</a>
-    {% elif session.get('role') == 'admin' %}
-      <a class="navlink" href="/admin">📊 Dashboard</a>
-      <a class="navlink" href="/admin/users">👥 Users</a>
-      <a class="navlink" href="/admin/events">📅 Events</a>
-      <a class="navlink" href="/admin/activities">💪 Activities</a>
-      <a class="navlink" href="/admin/challenges">⚔️ Challenges</a>
-      <a class="navlink" href="/admin/rewards">🎁 Rewards</a>
-      <a class="navlink" href="/logout">Logout</a>
-    {% else %}
-      <a class="navlink" href="/login">Login</a>
-      <a class="navlink" href="/register">Register</a>
-    {% endif %}
-    <a class="navlink" href="/api/docs">⚡ API</a>
-    <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
+      {% if session.get('role') == 'student' %}
+        <a class="navlink" href="/dashboard">🏠 Home</a>
+        
+        <div class="dropdown">
+          <button class="dropbtn">💪 Workouts ▾</button>
+          <div class="dropdown-content">
+            <a href="/activity">Log Manual Activity</a>
+            <a href="/live-workout">AI Live Workout</a>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="dropbtn">👥 Social ▾</button>
+          <div class="dropdown-content">
+            <a href="/leaderboard">🏆 Leaderboard</a>
+            <a href="/teams">👥 Teams</a>
+            <a href="/friends">🧑‍🤝‍🧑 Friends</a>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="dropbtn">⭐ Explore ▾</button>
+          <div class="dropdown-content">
+            <a href="/events">📅 Events</a>
+            <a href="/challenges">⚔️ Challenges</a>
+            <a href="/rewards">🎁 Rewards</a>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="dropbtn">👤 Profile ▾</button>
+          <div class="dropdown-content">
+            <a href="/api/docs">⚡ API</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      {% elif session.get('role') == 'admin' %}
+        <a class="navlink" href="/admin">📊 Dashboard</a>
+        
+        <div class="dropdown">
+          <button class="dropbtn">⚙️ Manage ▾</button>
+          <div class="dropdown-content">
+            <a href="/admin/users">👥 Users</a>
+            <a href="/admin/events">📅 Events</a>
+            <a href="/admin/activities">💪 Activities</a>
+            <a href="/admin/challenges">⚔️ Challenges</a>
+            <a href="/admin/rewards">🎁 Rewards</a>
+          </div>
+        </div>
+
+        <div class="dropdown">
+          <button class="dropbtn">👤 Profile ▾</button>
+          <div class="dropdown-content">
+            <a href="/api/docs">⚡ API</a>
+            <a href="/logout">Logout</a>
+          </div>
+        </div>
+      {% else %}
+        <a class="navlink" href="/login">Login</a>
+        <a class="navlink" href="/register">Register</a>
+        <a class="navlink" href="/api/docs">⚡ API</a>
+      {% endif %}
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
   </div>
 </nav>
 <div class="container">
