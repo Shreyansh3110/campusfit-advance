@@ -1,34 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Dashboard • CampusFit{% endblock %}
 {% block content %}
-<h1><span class="avatar">{{ u['avatar'] }}</span>Hello, {{ u['name'] }} 👋</h1>
+<h1 class="animate-fade-in-up delay-1" style="font-weight: 800; font-size: 32px; margin-bottom: 24px;">
+  <span class="avatar" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--accent); padding: 4px; display: inline-block;">{{ u['avatar'] }}</span> Hello, {{ u['name'] }}
+</h1>
 
-<div class="grid">
-  <div class="card"><div class="stat">{{ points }}</div><div>⭐ Points</div></div>
-  <div class="card"><div class="stat">{{ level }}</div><div>🏅 Fitness Level</div></div>
-  <div class="card"><div class="stat">{{ minutes }}</div><div>⏱ Active Minutes</div></div>
-  <div class="card"><div class="stat">{{ streak }} 🔥</div><div>Day Streak</div></div>
+<div class="stats-grid animate-fade-in-up delay-2">
+  <div class="glass-card stat-box">
+    <div class="stat-title">⭐ Points</div>
+    <div class="stat-value counter" data-target="{{ points }}">0</div>
+  </div>
+  <div class="glass-card stat-box">
+    <div class="stat-title">🏅 Level</div>
+    <div class="stat-value">{{ level }}</div>
+  </div>
+  <div class="glass-card stat-box">
+    <div class="stat-title">⏱️ Minutes</div>
+    <div class="stat-value counter" data-target="{{ minutes }}">0</div>
+  </div>
+  <div class="glass-card stat-box">
+    <div class="stat-title">🔥 Streak</div>
+    <div class="stat-value counter" data-target="{{ streak }}">0</div>
+  </div>
 </div>
 
-<div class="balance-banner">
-  <div>
-    <div style="color:rgba(255,255,255,0.85);font-size:13.5px">Redeemable balance</div>
-    <div class="amt">⭐ {{ balance }}</div>
+<div class="glass-card animate-fade-in-up delay-3" style="position:relative; margin-bottom: 24px; padding: 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+  <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 100% -50%, var(--accent-glow) 0%, transparent 60%); z-index:0; pointer-events: none;"></div>
+  <div style="position:relative; z-index:1;">
+    <div style="color:var(--muted); font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Redeemable Balance</div>
+    <div style="font-size:38px; font-weight:800; color:var(--text); margin-top:4px;">⭐ <span class="counter" data-target="{{ balance }}">0</span></div>
   </div>
-  <a class="btn" style="background:rgba(255,255,255,0.22)" href="/rewards">🎁 Visit Rewards Store</a>
+  <div style="position:relative; z-index:1;">
+    <a class="btn primary-btn" style="box-shadow: 0 4px 15px var(--accent-glow); padding: 12px 24px;" href="/rewards">🎁 Visit Rewards Store</a>
+  </div>
 </div>
 
-<div class="card">
-  <div class="flex-between">
-    <h2>Weekly Activity Goal</h2>
-    <span class="pill">🎯 {{ u['goal'] }}</span>
+<div class="glass-card animate-fade-in-up delay-4" style="margin-bottom: 24px; padding: 28px;">
+  <div class="flex-between" style="margin-bottom: 20px;">
+    <h2 style="margin:0; font-size: 20px; font-weight: 700;">Weekly Activity Goal</h2>
+    <span class="pill" style="border: 1px solid var(--border); background: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">🎯 {{ u['goal'] }}</span>
   </div>
-  <div class="bar"><div class="fill" style="width:{{ pct }}%"></div></div>
-  <p>{{ minutes }}/240 minutes this week • {{ pct }}% complete</p>
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-    <a class="btn" href="/activity">Log Activity</a>
-    {% if team %}<a class="btn ghost" href="/teams">👥 {{ team['name'] }}</a>{% endif %}
-    <button class="btn ghost" onclick="toggleCoachDrawer()">💬 Chat with AI Coach</button>
+  <div class="bar" style="background: var(--border); height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+    <div class="fill progress-animate" style="background: linear-gradient(90deg, var(--blue), var(--accent)); height: 100%; border-radius: 6px; width: 0%; box-shadow: 0 0 10px var(--accent-glow);" data-target-width="{{ pct }}%"></div>
+  </div>
+  <p class="muted" style="margin:0 0 20px 0; font-size: 14px; font-weight: 500;"><span class="counter" data-target="{{ minutes }}">0</span> / 240 minutes this week &bull; {{ pct }}% complete</p>
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a class="btn primary-btn" href="/activity">Log Activity</a>
+    {% if team %}<a class="btn ghost" style="border: 1px solid var(--border);" href="/teams">👥 {{ team['name'] }}</a>{% endif %}
+    <button class="btn ghost" style="border: 1px solid var(--border);" onclick="toggleCoachDrawer()">💬 Chat with AI Coach</button>
   </div>
 </div>
 
@@ -209,5 +228,34 @@
 {% block scripts %}
 <script>
   renderWeeklyChart({{ chart_labels|tojson }}, {{ chart_minutes|tojson }});
+  
+  // Dashboard Automation & Animation
+  document.addEventListener("DOMContentLoaded", () => {
+    // 1. Progress Bar Animation
+    setTimeout(() => {
+      document.querySelectorAll('.progress-animate').forEach(el => {
+        el.style.width = el.getAttribute('data-target-width');
+      });
+    }, 100);
+
+    // 2. Number Counter Animation
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+      const updateCount = () => {
+        const target = +counter.getAttribute('data-target');
+        const count = +counter.innerText;
+        const speed = 200; // lower is faster
+        const inc = target / speed;
+        
+        if (count < target) {
+          counter.innerText = Math.ceil(count + inc);
+          setTimeout(updateCount, 10);
+        } else {
+          counter.innerText = target;
+        }
+      };
+      updateCount();
+    });
+  });
 </script>
 {% endblock %}
