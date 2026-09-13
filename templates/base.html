@@ -89,7 +89,9 @@
   {% endwith %}
   {% block content %}{% endblock %}
 </div>
+{% block footer %}
 <footer>CampusFit • SIH26196 • Fitness &amp; Sports • <a href="/api/docs" style="color:inherit; text-decoration:underline;">Interactive API</a></footer>
+{% endblock %}
 
 {% if session.get('role') == 'student' %}
 <!-- Floating AI Coach Launcher -->

@@ -1,15 +1,143 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}Login • CampusFit{% endblock %}
+{% block footer %}{% endblock %}
 {% block content %}
-<div class="center card">
-  <h1>CampusFit Login</h1>
-  <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label>Email</label><input type="email" name="email" required>
-    <label>Password</label><input type="password" name="password" required>
-    <button>Login</button>
-  </form>
+<style>
+  .auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 75vh;
+    position: relative;
+  }
+  /* Decorative Glowing Orbs */
+  .auth-container::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: var(--accent);
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.15;
+    top: 10%;
+    left: 20%;
+    animation: drift 8s infinite alternate ease-in-out;
+  }
+  .auth-container::after {
+    content: '';
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.15;
+    bottom: 10%;
+    right: 20%;
+    animation: drift 10s infinite alternate-reverse ease-in-out;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 50px); }
+  }
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px;
+    position: relative;
+    z-index: 10;
+  }
+  .login-card h1 {
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .login-subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+  .input-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .input-group input {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    font-size: 15px;
+    transition: all 0.2s;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 10px;
+    border-radius: 12px;
+  }
+  .signup-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+  .signup-link a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .signup-link a:hover {
+    text-decoration: underline;
+  }
+</style>
 
-  <p class="muted">Student? <a href="/register">Create account</a></p>
+<div class="auth-container">
+  <div class="glass-card login-card animate-fade-in-up">
+    <h1>Welcome Back</h1>
+    <p class="login-subtitle">Sign in to continue your fitness journey</p>
+    
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="you@campus.edu" required>
+      </div>
+      
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+      
+      <button class="btn primary-btn login-btn">Sign In</button>
+    </form>
+
+    <div class="signup-link muted">
+      New to CampusFit? <a href="/register">Create an account</a>
+    </div>
+  </div>
 </div>
 {% endblock %}
