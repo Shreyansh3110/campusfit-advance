@@ -1,198 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Dashboard • CampusFit{% endblock %}
 {% block content %}
-<h1><span class="avatar">{{ u['avatar'] }}</span>Hello, {{ u['name'] }} 👋</h1>
+<h1 class="animate-fade-in-up delay-1" style="font-weight: 800; font-size: 32px; margin-bottom: 24px;">
+  <span class="avatar" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--accent); padding: 4px; display: inline-block;">{{ u['avatar'] }}</span> Hello, {{ u['name'] }}
+</h1>
 
-<div class="grid">
-  <div class="card"><div class="stat">{{ points }}</div><div>⭐ Points</div></div>
-  <div class="card"><div class="stat">{{ level }}</div><div>🏅 Fitness Level</div></div>
-  <div class="card"><div class="stat">{{ minutes }}</div><div>⏱ Active Minutes</div></div>
-  <div class="card"><div class="stat">{{ streak }} 🔥</div><div>Day Streak</div></div>
-</div>
-
-<div class="balance-banner">
-  <div>
-    <div style="color:rgba(255,255,255,0.85);font-size:13.5px">Redeemable balance</div>
-    <div class="amt">⭐ {{ balance }}</div>
+<div class="stats-grid animate-fade-in-up delay-2">
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
+    <div class="stat-title">⭐ Points</div>
+    <div class="stat-value counter" data-target="{{ points }}">0</div>
   </div>
-  <a class="btn" style="background:rgba(255,255,255,0.22)" href="/rewards">🎁 Visit Rewards Store</a>
-</div>
-
-<div class="card">
-  <div class="flex-between">
-    <h2>Weekly Activity Goal</h2>
-    <span class="pill">🎯 {{ u['goal'] }}</span>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
+    <div class="stat-title">🏅 Level</div>
+    <div class="stat-value">{{ level }}</div>
   </div>
-  <div class="bar"><div class="fill" style="width:{{ pct }}%"></div></div>
-  <p>{{ minutes }}/240 minutes this week • {{ pct }}% complete</p>
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-    <a class="btn" href="/activity">Log Activity</a>
-    {% if team %}<a class="btn ghost" href="/teams">👥 {{ team['name'] }}</a>{% endif %}
-    <button class="btn ghost" onclick="toggleCoachDrawer()">💬 Chat with AI Coach</button>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
+    <div class="stat-title">⏱️ Minutes</div>
+    <div class="stat-value counter" data-target="{{ minutes }}">0</div>
+  </div>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
+    <div class="stat-title">🔥 Streak</div>
+    <div class="stat-value counter" data-target="{{ streak }}">0</div>
   </div>
 </div>
 
-<!-- AI Coach & Daily Activity Tips Card -->
-<div class="card coach-highlight-card">
-  <div class="flex-between">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span style="font-size:24px;">🤖</span>
-      <div>
-        <h2 style="margin:0; font-size:18px;">AI Coach • Daily Activity Insights &amp; Tips</h2>
-        <small class="muted">Personalized for your {{ u['goal'] }} goal • Updates with daily activity</small>
-      </div>
-    </div>
-    <span class="pill" style="background:var(--accent-glow); color:var(--accent);">⚡ Interactive</span>
+<div class="glass-card animate-fade-in-up delay-3" style="position:relative; margin-bottom: 24px; padding: 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+  <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 100% -50%, var(--accent-glow) 0%, transparent 60%); z-index:0; pointer-events: none;"></div>
+  <div style="position:relative; z-index:1;">
+    <div style="color:var(--muted); font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Redeemable Balance</div>
+    <div style="font-size:38px; font-weight:800; color:var(--text); margin-top:4px;">⭐ <span class="counter" data-target="{{ balance }}">0</span></div>
   </div>
-
-  <div class="coach-nudge-banner" style="margin-top:14px;">
-    {{ daily_tips.streak_nudge }}
-  </div>
-
-  <div class="coach-tips-grid" style="margin-top:14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
-    <div class="coach-tip-box">
-      <div class="tip-label">🏋️ Recommended Workout Today</div>
-      <strong>{{ daily_tips.workout_recommendation.title }}</strong>
-      <span class="muted" style="font-size:12px;">({{ daily_tips.workout_recommendation.minutes }}m • {{ daily_tips.workout_recommendation.intensity }})</span>
-      <p style="margin:6px 0 0 0; font-size:13px; line-height:1.4;">{{ daily_tips.workout_recommendation.desc }}</p>
-    </div>
-    <div class="coach-tip-box">
-      <div class="tip-label">🥗 Nutrition &amp; Hydration</div>
-      <p style="margin:4px 0 0 0; font-size:13px; line-height:1.4;">{{ daily_tips.nutrition_tip }}</p>
-      <div style="margin-top:8px;" class="tip-label">😴 Recovery</div>
-      <p style="margin:4px 0 0 0; font-size:13px; line-height:1.4;">{{ daily_tips.recovery_tip }}</p>
-    </div>
-  </div>
-
-  <div class="coach-action-bar" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-    <div style="font-size:13px; color:var(--text-muted);">
-      📫 Send daily activity report &amp; coach tips to (<strong>{{ u['email'] }}</strong>)
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button id="sendEmailBtn" class="btn" style="background:#2563eb; color:#ffffff;" onclick="sendDailyEmailDigest()">
-        ✉️ Email Me Today's Activity &amp; Tips
-      </button>
-      <button class="btn ghost" onclick="openEmailPreviewModal()">
-        👁️ Preview Email
-      </button>
-      <button class="btn ghost" onclick="openSettingsModal()">
-        ⚙️ Setup SMTP / AI
-      </button>
-      <a href="/api/docs" class="btn ghost" style="font-size:12.5px;">⚡ API</a>
-    </div>
-  </div>
-  <div id="emailStatusMsg" style="display:none; margin-top:10px;" class="alert"></div>
-</div>
-
-<!-- EMAIL PREVIEW MODAL -->
-<div id="emailPreviewModal" class="modal-backdrop">
-  <div class="modal-box" style="max-width: 680px; height: 80vh;">
-    <div class="modal-header">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:20px;">📧</span>
-        <h3>Daily Digest Email Preview</h3>
-      </div>
-      <button class="modal-close" onclick="closeEmailPreviewModal()">✕</button>
-    </div>
-    <div class="modal-body" style="padding:0; background:#f1f5f9;">
-      <iframe id="emailPreviewFrame" style="width:100%; height:100%; border:0; min-height:480px;" src="about:blank"></iframe>
-    </div>
-    <div class="modal-footer">
-      <button class="btn ghost" onclick="closeEmailPreviewModal()">Close</button>
-      <button class="btn" style="background:#2563eb; color:#fff;" onclick="sendDailyEmailDigest()">✉️ Send to My Mail</button>
-    </div>
+  <div style="position:relative; z-index:1;">
+    <a class="btn primary-btn" style="box-shadow: 0 4px 15px var(--accent-glow); padding: 12px 24px;" href="/rewards">🎁 Visit Rewards Store</a>
   </div>
 </div>
 
-<!-- EMAIL & AI SETTINGS MODAL -->
-<div id="settingsModal" class="modal-backdrop">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:20px;">⚙️</span>
-        <h3>Email Delivery &amp; AI Coach Settings</h3>
-      </div>
-      <button class="modal-close" onclick="closeSettingsModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:13.5px; margin-top:0; color:var(--muted);">
-        Configure your email provider (e.g. Gmail) to deliver daily workout digests directly to your inbox.
-      </p>
 
-      <div style="margin-bottom:14px;">
-        <label style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--muted);">Quick Presets</label>
-        <div style="margin-top:6px;">
-          <button type="button" class="preset-btn" onclick="applySmtpPreset('gmail')">Google / Gmail</button>
-          <button type="button" class="preset-btn" onclick="applySmtpPreset('outlook')">Outlook / Office365</button>
-          <button type="button" class="preset-btn" onclick="applySmtpPreset('custom')">Custom SMTP</button>
-        </div>
-      </div>
-
-      <div class="grid-2" style="gap:10px; margin-bottom:10px;">
-        <div>
-          <label style="font-size:12.5px; font-weight:600;">SMTP Host</label>
-          <input type="text" id="cfgSmtpHost" placeholder="smtp.gmail.com">
-        </div>
-        <div>
-          <label style="font-size:12.5px; font-weight:600;">SMTP Port</label>
-          <input type="number" id="cfgSmtpPort" placeholder="587">
-        </div>
-      </div>
-
-      <div class="grid-2" style="gap:10px; margin-bottom:10px;">
-        <div>
-          <label style="font-size:12.5px; font-weight:600;">SMTP Username / Email</label>
-          <input type="email" id="cfgSmtpUser" placeholder="your-email@gmail.com">
-        </div>
-        <div>
-          <label style="font-size:12.5px; font-weight:600;">SMTP App Password</label>
-          <input type="password" id="cfgSmtpPass" placeholder="16-character Google App Password">
-          <small class="muted" style="font-size:11px; display:block; margin-top:-8px;">For Gmail: Google Account &gt; Security &gt; App Passwords</small>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="font-size:12.5px; font-weight:600;">Sender Display Name / From Address (Optional)</label>
-        <input type="text" id="cfgSmtpFrom" placeholder="CampusFit Coach &lt;notifications@campusfit.com&gt;">
-      </div>
-
-      <hr style="border:0; border-top:1px solid var(--border); margin:18px 0;">
-
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12.5px; font-weight:600;">Google Gemini API Key (Optional for AI Coach)</label>
-        <input type="password" id="cfgGeminiKey" placeholder="Paste your Gemini API key (optional)">
-        <small class="muted" style="font-size:11.5px; display:block; margin-top:-8px;">If left blank, CampusFit uses its built-in expert sports coaching engine.</small>
-      </div>
-
-      <div id="settingsStatusMsg" style="display:none; margin-top:12px;" class="alert"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn ghost" onclick="testSmtpConnection()">🧪 Test Email</button>
-      <button class="btn" onclick="saveAppSettings()">💾 Save Settings</button>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <h2>📈 Last 7 Days</h2>
-  <canvas id="weeklyChart" height="90"></canvas>
-</div>
-
-<div class="card">
-  <h2>🏅 Badges ({{ badges|length }}/{{ total_badges }})</h2>
-  <div class="badge-row">
-    {% for code, meta in all_badges.items() %}
-      {% set earned = code in earned_codes %}
-      <div class="badge-pill {{ '' if earned else 'badge-locked' }}" title="{{ meta.desc }}">
-        <div class="icon">{{ meta.icon }}</div>
-        <div class="name">{{ meta.name }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<div class="card">
-  
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
   
   <!-- Apple Watch Rings -->
@@ -266,6 +109,35 @@
 {% block scripts %}
 <script>
   renderWeeklyChart({{ chart_labels|tojson }}, {{ chart_minutes|tojson }});
+  
+  // Dashboard Automation & Animation
+  document.addEventListener("DOMContentLoaded", () => {
+    // 1. Progress Bar Animation
+    setTimeout(() => {
+      document.querySelectorAll('.progress-animate').forEach(el => {
+        el.style.width = el.getAttribute('data-target-width');
+      });
+    }, 100);
+
+    // 2. Number Counter Animation
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+      const updateCount = () => {
+        const target = +counter.getAttribute('data-target');
+        const count = +counter.innerText;
+        const speed = 200; // lower is faster
+        const inc = target / speed;
+        
+        if (count < target) {
+          counter.innerText = Math.ceil(count + inc);
+          setTimeout(updateCount, 10);
+        } else {
+          counter.innerText = target;
+        }
+      };
+      updateCount();
+    });
+  });
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
