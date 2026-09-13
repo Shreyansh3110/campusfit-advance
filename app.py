@@ -98,11 +98,12 @@ def fitness_level(points):
 
 @app.route("/")
 def home():
+    next_url = "/login"
     if session.get("role") == "admin":
-        return redirect("/admin")
-    if session.get("uid"):
-        return redirect("/dashboard")
-    return render_template("splash.html")
+        next_url = "/admin"
+    elif session.get("uid"):
+        next_url = "/dashboard"
+    return render_template("splash.html", next_url=next_url)
 
 
 @app.route("/register", methods=["GET", "POST"])
