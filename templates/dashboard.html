@@ -45,65 +45,21 @@
 </script>
 <style>
   /* Heatmap Styles */
-  .heatmap-grid {
-    display: grid;
-    grid-template-columns: repeat(14, 1fr);
-    gap: 6px;
-    margin-top: 16px;
-  }
   .heat-box {
-    width: 100%;
-    aspect-ratio: 1;
+    width: 14px;
+    height: 14px;
     background: rgba(255,255,255,0.05);
-    border-radius: 4px;
-    transition: all 0.3s;
+    border-radius: 3px;
+    transition: all 0.2s;
   }
   .heat-box:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 10px var(--accent);
+    transform: scale(1.3);
+    box-shadow: 0 0 8px var(--accent);
+    z-index: 10;
   }
-  .heat-box.level-1 { background: rgba(34, 211, 238, 0.4); }
-  .heat-box.level-2 { background: rgba(34, 211, 238, 0.7); box-shadow: 0 0 8px rgba(34, 211, 238, 0.5); }
-  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
-
-  /* Rings Styles */
-  .rings-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 0 auto;
-  }
-  .ring-svg {
-    transform: rotate(-90deg);
-    width: 100%;
-    height: 100%;
-  }
-  .ring-circle-bg {
-    fill: none;
-    stroke: rgba(255,255,255,0.1);
-    stroke-width: 12;
-  }
-  .ring-circle-progress {
-    fill: none;
-    stroke-width: 12;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .ring-1 { stroke: #22d3ee; filter: drop-shadow(0 0 8px #22d3ee); }
-  .ring-2 { stroke: #34d399; filter: drop-shadow(0 0 8px #34d399); }
-  .ring-3 { stroke: #f472b6; filter: drop-shadow(0 0 8px #f472b6); }
-  
-  .rings-labels {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .ring-legend { font-size: 11px; font-weight: 700; text-transform: uppercase; margin: 2px 0; }
-  .c-1 { color: #22d3ee; }
-  .c-2 { color: #34d399; }
-  .c-3 { color: #f472b6; }
+  .heat-box.level-1 { background: rgba(34, 211, 238, 0.3); }
+  .heat-box.level-2 { background: rgba(34, 211, 238, 0.6); box-shadow: 0 0 6px rgba(34, 211, 238, 0.4); }
+  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 10px rgba(34, 211, 238, 0.7); }
 </style>
 
 {% endblock %}
@@ -143,10 +99,63 @@
 </div>
 
 
+
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
   
-  <!-- Apple Watch Rings -->
-  <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="5" style="padding: 28px; text-align: center;">
+  <!-- Apple Watch Rings (Refined) -->
+  <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="3" style="padding: 24px; display: flex; flex-direction: column; justify-content: center;">
+    <h2 style="margin:0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--text);">Activity Rings</h2>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 24px;">
+      
+      <!-- The Rings -->
+      <div class="rings-container" style="position: relative; width: 140px; height: 140px;">
+        <svg class="ring-svg" viewBox="0 0 120 120" style="transform: rotate(-90deg); width: 100%; height: 100%;">
+          <!-- Outer (Minutes) -->
+          <circle fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" cx="60" cy="60" r="50"></circle>
+          <circle class="ring-circle-progress" fill="none" stroke="#22d3ee" stroke-width="9" stroke-linecap="round" cx="60" cy="60" r="50" style="filter: drop-shadow(0 0 4px rgba(34,211,238,0.5)); transition: stroke-dashoffset 1.5s ease-out;" stroke-dasharray="314" stroke-dashoffset="314" data-percent="{{ [100, (minutes/240)*100]|min }}"></circle>
+          
+          <!-- Middle (Points) -->
+          <circle fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" cx="60" cy="60" r="38"></circle>
+          <circle class="ring-circle-progress" fill="none" stroke="#34d399" stroke-width="9" stroke-linecap="round" cx="60" cy="60" r="38" style="filter: drop-shadow(0 0 4px rgba(52,211,153,0.5)); transition: stroke-dashoffset 1.5s ease-out 0.2s;" stroke-dasharray="239" stroke-dashoffset="239" data-percent="{{ [100, (points/1000)*100]|min }}"></circle>
+          
+          <!-- Inner (Streak) -->
+          <circle fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" cx="60" cy="60" r="26"></circle>
+          <circle class="ring-circle-progress" fill="none" stroke="#f472b6" stroke-width="9" stroke-linecap="round" cx="60" cy="60" r="26" style="filter: drop-shadow(0 0 4px rgba(244,114,182,0.5)); transition: stroke-dashoffset 1.5s ease-out 0.4s;" stroke-dasharray="163" stroke-dashoffset="163" data-percent="{{ [100, (streak/7)*100]|min }}"></circle>
+        </svg>
+      </div>
+
+      <!-- The Legend -->
+      <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #22d3ee; letter-spacing: 1px;">Move</div>
+          <div style="font-size: 14px; color: var(--text); font-weight: 600;">{{ minutes }} / 240m</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #34d399; letter-spacing: 1px;">Score</div>
+          <div style="font-size: 14px; color: var(--text); font-weight: 600;">{{ points }} pts</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #f472b6; letter-spacing: 1px;">Streak</div>
+          <div style="font-size: 14px; color: var(--text); font-weight: 600;">{{ streak }} days</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cyberpunk Heatmap (Refined) -->
+  <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="3" style="padding: 24px; display: flex; flex-direction: column; justify-content: center;">
+    <h2 style="margin:0; font-size: 16px; font-weight: 700; color: var(--text);">Consistency Grid</h2>
+    <p class="muted" style="font-size:12px; margin: 4px 0 16px 0;">Your last 98 days of activity</p>
+    
+    <div style="display: flex; justify-content: center;">
+      <div id="cyber-heatmap" style="display: grid; grid-template-columns: repeat(14, 14px); gap: 4px;">
+        <!-- JS will inject 14x14px boxes here -->
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="5" style="padding: 28px; text-align: center;">
     <h2 style="margin-top:0; font-size: 18px; font-weight: 700;">Activity Rings</h2>
     <div class="rings-container">
       <svg class="ring-svg" viewBox="0 0 200 200">
