@@ -10,7 +10,12 @@
 </head>
 <body>
 <nav>
-  <div class="brand">🏃 Campus<span>Fit</span></div>
+  <div class="brand" style="display: flex; align-items: center; gap: 8px;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px var(--accent-glow));">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+    </svg>
+    Campus<span>Fit</span>
+  </div>
   <button class="hamburger" onclick="toggleNav()">☰</button>
   <div class="nav-links">
       {% if session.get('role') == 'student' %}
