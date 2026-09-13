@@ -90,7 +90,28 @@
   {% block content %}{% endblock %}
 </div>
 {% block footer %}
-<footer>CampusFit • SIH26196 • Fitness &amp; Sports • <a href="/api/docs" style="color:inherit; text-decoration:underline;">Interactive API</a></footer>
+<footer style="margin-top: 50px; padding: 30px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);">
+  <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-style: italic; font-weight: 500; font-size: 15px; color: var(--muted); letter-spacing: 0.5px; opacity: 0.8;">
+    {% if request.endpoint == 'dashboard' %}
+      "Your only competition is who you were yesterday."
+    {% elif request.endpoint == 'leaderboard' %}
+      "Greatness is earned, not given. Rise to the top."
+    {% elif request.endpoint == 'rewards' %}
+      "Hard work pays off. Enjoy the rewards of your discipline."
+    {% elif request.endpoint == 'activity' or request.endpoint == 'live_workout' %}
+      "Every drop of sweat is a step closer to your goals."
+    {% elif request.endpoint == 'friends' or request.endpoint == 'teams' %}
+      "Strong alone, unstoppable together."
+    {% elif request.endpoint == 'events' or request.endpoint == 'challenges' %}
+      "Step out of your comfort zone and into your true potential."
+    {% else %}
+      "Transforming campus life, one workout at a time."
+    {% endif %}
+  </div>
+  <div style="margin-top: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); opacity: 0.6;">
+    CampusFit
+  </div>
+</footer>
 {% endblock %}
 
 {% if session.get('role') == 'student' %}
