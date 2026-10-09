@@ -34,7 +34,7 @@
 {% block content %}
 <div class="glass-card" style="padding: 30px;">
   <div class="glass-card-header">
-    <h2 style="margin: 0; font-size: 24px; color: var(--text);">??? Live Campus Heatmap</h2>
+    <h2 style="margin: 0; font-size: 24px; color: var(--text);">Live Campus Heatmap (Real-Time)</h2>
     <p class="muted" style="margin: 5px 0 0 0;">See where students are working out on campus right now.</p>
   </div>
   
@@ -56,7 +56,7 @@
     }).addTo(map);
 
     // 3. Inject Hotspots from Backend
-    const hotspots = {{ hotspots|tojson }};
+    const hotspots = {{ hotspots|tojson|safe }};
     
     hotspots.forEach(spot => {
       const size = spot.intensity; 
