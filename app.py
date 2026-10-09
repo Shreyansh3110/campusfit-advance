@@ -252,7 +252,7 @@ def setup_db():
 @app.route("/duels")
 @login_required("student")
 def duels_dashboard():
-    user_id = session["user_id"]
+    user_id = session["uid"]
     conn = get_db()
     # Get all users except current to challenge
     users = conn.execute("SELECT id, name FROM users WHERE id != ? LIMIT 20", (user_id,)).fetchall()
@@ -275,7 +275,7 @@ def duels_dashboard():
 @app.route("/duels/challenge", methods=["POST"])
 @login_required("student")
 def challenge_duel():
-    challenger_id = session["user_id"]
+    challenger_id = session["uid"]
     opponent_id = request.form.get("opponent_id")
     if opponent_id:
         conn = get_db()
@@ -289,7 +289,7 @@ def challenge_duel():
 @app.route("/duels/accept/<int:duel_id>", methods=["POST"])
 @login_required("student")
 def accept_duel(duel_id):
-    user_id = session["user_id"]
+    user_id = session["uid"]
     conn = get_db()
     conn.execute("UPDATE duels SET status='active' WHERE id=? AND opponent_id=?", (duel_id, user_id))
     flash("Challenge accepted! Let the duel begin!", "success")
