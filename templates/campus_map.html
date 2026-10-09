@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Live Campus Heatmap | CampusFit{% endblock %}
+
+{% block head %}
+<!-- Leaflet CSS & JS for the Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  #map {
+    width: 100%;
+    height: 600px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0, 255, 200, 0.1);
+    z-index: 1;
+  }
+  .glass-card-header {
+    margin-bottom: 1.5rem;
+  }
+  /* Custom glowing markers */
+  .glow-marker {
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    50% { transform: scale(1.5); opacity: 0.4; }
+    100% { transform: scale(0.8); opacity: 0.8; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="padding: 30px;">
+  <div class="glass-card-header">
+    <h2 style="margin: 0; font-size: 24px; color: var(--text);">??? Live Campus Heatmap</h2>
+    <p class="muted" style="margin: 5px 0 0 0;">See where students are working out on campus right now.</p>
+  </div>
+  
+  <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize Map (Centered on campus coords)
+    const map = L.map('map').setView([40.7128, -74.0060], 15);
+
+    // 2. Add Dark Mode Map Tiles (CartoDB Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    // 3. Inject Hotspots from Backend
+    const hotspots = {{ hotspots|tojson }};
+    
+    hotspots.forEach(spot => {
+      const size = spot.intensity; 
+      const customIcon = L.divIcon({
+        className: 'glow-marker',
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2]
+      });
+
+      L.marker([spot.lat, spot.lng], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(<b></b><br>Activity Level: %);
+    });
+
+    // 4. Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          map.setView([lat, lng], 16);
+          
+          L.circleMarker([lat, lng], {
+            color: '#fff', fillColor: '#fff', fillOpacity: 1, radius: 6
+          }).addTo(map).bindPopup("You are here").openPopup();
+        },
+        () => { console.log("Geolocation denied or unavailable."); }
+      );
+    }
+  });
+</script>
+{% endblock %}
