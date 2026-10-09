@@ -253,22 +253,22 @@ def setup_db():
 @login_required("student")
 def duels_dashboard():
     user_id = session["user_id"]
-    with get_db() as conn:
-        # Get all users except current to challenge
-        users = conn.execute("SELECT id, name FROM users WHERE id != ? LIMIT 20", (user_id,)).fetchall()
-        
-        # Get active or pending duels for this user
-        my_duels = conn.execute("""
-            SELECT d.id, d.status, d.challenger_id, d.opponent_id, 
-                   u1.name as challenger_name, u2.name as opponent_name,
-                   (SELECT COALESCE(SUM(points),0) FROM activities WHERE user_id = u1.id) as challenger_points,
-                   (SELECT COALESCE(SUM(points),0) FROM activities WHERE user_id = u2.id) as opponent_points
-            FROM duels d
-            JOIN users u1 ON d.challenger_id = u1.id
-            JOIN users u2 ON d.opponent_id = u2.id
-            WHERE d.challenger_id = ? OR d.opponent_id = ?
-            ORDER BY d.id DESC
-        """, (user_id, user_id)).fetchall()
+    conn = get_db()
+    # Get all users except current to challenge
+    users = conn.execute("SELECT id, name FROM users WHERE id != ? LIMIT 20", (user_id,)).fetchall()
+    
+    # Get active or pending duels for this user
+    my_duels = conn.execute("""
+        SELECT d.id, d.status, d.challenger_id, d.opponent_id, 
+               u1.name as challenger_name, u2.name as opponent_name,
+               (SELECT COALESCE(SUM(points),0) FROM activities WHERE user_id = u1.id) as challenger_points,
+               (SELECT COALESCE(SUM(points),0) FROM activities WHERE user_id = u2.id) as opponent_points
+        FROM duels d
+        JOIN users u1 ON d.challenger_id = u1.id
+        JOIN users u2 ON d.opponent_id = u2.id
+        WHERE d.challenger_id = ? OR d.opponent_id = ?
+        ORDER BY d.id DESC
+    """, (user_id, user_id)).fetchall()
 
     return render_template("duels.html", users=users, duels=my_duels, current_user_id=user_id)
 
@@ -278,12 +278,11 @@ def challenge_duel():
     challenger_id = session["user_id"]
     opponent_id = request.form.get("opponent_id")
     if opponent_id:
-        with get_db() as conn:
-            conn.execute("""
-                INSERT INTO duels (challenger_id, opponent_id, status, created_at)
-                VALUES (?, ?, 'pending', datetime('now'))
-            """, (challenger_id, opponent_id))
-            conn.commit()
+        conn = get_db()
+        conn.execute("""
+            INSERT INTO duels (challenger_id, opponent_id, status, created_at)
+            VALUES (?, ?, 'pending', datetime('now'))
+        """, (challenger_id, opponent_id))
         flash("Challenge sent!", "success")
     return redirect(url_for("duels_dashboard"))
 
@@ -291,9 +290,8 @@ def challenge_duel():
 @login_required("student")
 def accept_duel(duel_id):
     user_id = session["user_id"]
-    with get_db() as conn:
-        conn.execute("UPDATE duels SET status='active' WHERE id=? AND opponent_id=?", (duel_id, user_id))
-        conn.commit()
+    conn = get_db()
+    conn.execute("UPDATE duels SET status='active' WHERE id=? AND opponent_id=?", (duel_id, user_id))
     flash("Challenge accepted! Let the duel begin!", "success")
     return redirect(url_for("duels_dashboard"))
 
