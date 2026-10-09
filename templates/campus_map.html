@@ -68,7 +68,7 @@
 
       L.marker([spot.lat, spot.lng], { icon: customIcon })
         .addTo(map)
-        .bindPopup(<b></b><br>Activity Level: %);
+        .bindPopup('<b>' + spot.name + '</b><br>Activity Level: ' + spot.intensity + '%');
     });
 
     // 4. Geolocation
