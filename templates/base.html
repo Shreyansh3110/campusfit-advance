@@ -28,8 +28,57 @@
   }
 </style>
 
+
+  <style>
+    /* 1. Seamless Page Transitions */
+    @view-transition { navigation: auto; }
+    
+    /* 2. Spotlight Hover Effect on Cards */
+    .glass-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.08), transparent 40%);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .glass-card:hover::before { opacity: 1; }
+    .glass-card > * { position: relative; z-index: 1; } /* Keep content above spotlight */
+
+    /* 3. Animated Aurora Background */
+    .aurora-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: -2; overflow: hidden; pointer-events: none;
+    }
+    .aurora-1, .aurora-2, .aurora-3 {
+      position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4;
+      animation: aurora-move 20s infinite alternate linear;
+    }
+    .aurora-1 { width: 45vw; height: 45vw; background: rgba(34, 211, 238, 0.25); top: -10%; left: -10%; }
+    .aurora-2 { width: 55vw; height: 55vw; background: rgba(168, 85, 247, 0.15); bottom: -20%; right: -10%; animation-duration: 25s; animation-direction: alternate-reverse; }
+    .aurora-3 { width: 40vw; height: 40vw; background: rgba(52, 211, 153, 0.15); top: 30%; left: 30%; animation-duration: 30s; }
+    
+    @keyframes aurora-move {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(10vw, 10vh) scale(1.2); }
+    }
+  </style>
+
 </head>
 <body>
+
+<div class="aurora-bg">
+  <div class="aurora-1"></div>
+  <div class="aurora-2"></div>
+  <div class="aurora-3"></div>
+</div>
+
 <div id="particles-js"></div>
 <nav>
   <div class="brand" style="display: flex; align-items: center; gap: 8px;">
@@ -246,6 +295,52 @@
         }, 250);
       }, 800); // 800ms delay after load
     }
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Spotlight Cursor Tracking
+    document.addEventListener('mousemove', (e) => {
+      document.querySelectorAll('.glass-card').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', ${x}px);
+        card.style.setProperty('--mouse-y', ${y}px);
+      });
+    });
+
+    // Number Scroll/Slot Machine Effect
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+      // Determine the target, either from data-target or the text content itself
+      const targetStr = counter.getAttribute('data-target') || counter.innerText.replace(/[^0-9]/g, '');
+      const target = parseInt(targetStr) || 0;
+      
+      // Keep original text format if it had symbols (like "420 pts" or similar)
+      const originalText = counter.innerText;
+      const isMinutes = originalText.includes('m') || originalText.includes('min');
+      
+      counter.innerText = '0';
+      
+      const updateCount = () => {
+        const current = parseInt(counter.innerText);
+        const increment = Math.max(1, Math.ceil(target / 40)); 
+        
+        if (current < target) {
+          counter.innerText = current + increment;
+          setTimeout(updateCount, 30);
+        } else {
+          // Final set to ensure exact match, restore 'm' if it was there
+          counter.innerText = target;
+        }
+      };
+      
+      // Delay for dramatic effect
+      setTimeout(updateCount, 400);
+    });
   });
 </script>
 
