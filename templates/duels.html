@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}1v1 Duels | CampusFit{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="padding: 30px; text-align: center;">
+  <h2 style="font-size: 32px; color: var(--accent); margin-bottom: 10px;">?? 1v1 Rivalry Mode</h2>
+  <p class="muted">Challenge your peers. Winner takes the glory.</p>
+
+  <div style="margin-top: 30px; text-align: left;">
+    <h3 style="color: var(--text);">Active & Pending Duels</h3>
+    {% if not duels %}
+      <p class="muted">You have no active duels. Send a challenge below!</p>
+    {% else %}
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+      {% for duel in duels %}
+        <div class="glass-card" style="padding: 20px; background: rgba(0,0,0,0.3); border-color: {% if duel.status == 'active' %}var(--accent){% else %}var(--border-color){% endif %};">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1; text-align: right; padding-right: 20px;">
+              <h4 style="margin:0; font-size: 20px;">{{ duel.challenger_name }}</h4>
+              <p style="margin:5px 0 0 0; color: var(--primary-color); font-weight: bold; font-size: 24px;">{{ duel.challenger_points }} pts</p>
+            </div>
+            
+            <div style="flex: 0; text-align: center;">
+              <span style="background: var(--bg-card); padding: 5px 15px; border-radius: 20px; font-weight: bold; border: 1px solid var(--accent);">VS</span>
+              <br><small class="muted" style="text-transform: uppercase;">{{ duel.status }}</small>
+            </div>
+
+            <div style="flex: 1; text-align: left; padding-left: 20px;">
+              <h4 style="margin:0; font-size: 20px;">{{ duel.opponent_name }}</h4>
+              <p style="margin:5px 0 0 0; color: var(--primary-color); font-weight: bold; font-size: 24px;">{{ duel.opponent_points }} pts</p>
+            </div>
+          </div>
+          
+          {% if duel.status == 'pending' and duel.opponent_id == current_user_id %}
+            <div style="text-align: center; margin-top: 15px;">
+              <form action="/duels/accept/{{ duel.id }}" method="POST">
+                <button type="submit" class="btn btn-primary" style="background: var(--accent); color: #000;">Accept Challenge</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div style="margin-top: 40px; text-align: left;">
+    <h3 style="color: var(--text);">Send a Challenge</h3>
+    <form action="/duels/challenge" method="POST" style="display: flex; gap: 10px;">
+      <select name="opponent_id" class="form-control" style="flex: 1; background: var(--bg-card); color: var(--text); border: 1px solid var(--border-color); padding: 10px; border-radius: var(--radius);">
+        {% for u in users %}
+          <option value="{{ u.id }}">{{ u.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary" style="padding: 10px 30px;">Challenge!</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
