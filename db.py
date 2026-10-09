@@ -93,7 +93,7 @@ BADGES = {
 
 def init_db():
     c = get_db()
-        c.execute("""CREATE TABLE IF NOT EXISTS duels(
+    c.execute("""CREATE TABLE IF NOT EXISTS duels(
         id SERIAL PRIMARY KEY,
         challenger_id INTEGER NOT NULL,
         opponent_id INTEGER NOT NULL,
