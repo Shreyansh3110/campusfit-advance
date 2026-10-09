@@ -226,6 +226,19 @@ def dashboard_send_email():
     return redirect("/dashboard")
 
 
+
+@app.route("/campus-map")
+@login_required("student")
+def campus_map():
+    # In a real app we'd fetch locations from DB, here we pass some mock hotspots
+    hotspots = [
+        {"name": "Main Gym", "lat": 40.7128, "lng": -74.0060, "intensity": 80},
+        {"name": "North Track", "lat": 40.7140, "lng": -74.0040, "intensity": 45},
+        {"name": "Dorm Quad", "lat": 40.7115, "lng": -74.0075, "intensity": 20},
+    ]
+    return render_template("campus_map.html", hotspots=hotspots)
+
+
 @app.route("/api/docs")
 def api_docs_page():
     return render_template("api_docs.html")
