@@ -1,42 +1,196 @@
 {% extends "base.html" %}
 {% block title %}Dashboard • CampusFit{% endblock %}
-{% block content %}
-<h1 class="animate-fade-in-up delay-1" style="font-weight: 800; font-size: 32px; margin-bottom: 24px;">
-  <span class="avatar" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--accent); padding: 4px; display: inline-block;">{{ u['avatar'] }}</span> Hello, {{ u['name'] }}
-</h1>
 
+{% block head %}
+<style>
+  /* Audio-Visual & Micro-Interaction Styling */
+  .sound-toggle-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .sound-toggle-btn:hover {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.12);
+    transform: scale(1.03);
+  }
+  .sound-toggle-btn.muted {
+    opacity: 0.6;
+    color: var(--muted);
+  }
+
+  /* Activity Feed Cards */
+  .activity-feed-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .activity-card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .activity-card:hover {
+    transform: translateX(4px);
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+    background: rgba(15, 23, 42, 0.85);
+  }
+  .activity-icon-badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .activity-card:hover .activity-icon-badge {
+    transform: scale(1.1) rotate(4deg);
+  }
+
+  /* Glowing star points badge */
+  .pts-badge {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+    transition: all 0.2s;
+  }
+  .activity-card:hover .pts-badge {
+    background: rgba(245, 158, 11, 0.25);
+    border-color: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.35);
+  }
+
+  /* Balance Card Shimmer */
+  .balance-card-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  .balance-card-glow::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.18), transparent 70%);
+    pointer-events: none;
+    animation: pulseAura 4s infinite alternate ease-in-out;
+  }
+  @keyframes pulseAura {
+    0% { transform: scale(0.85); opacity: 0.5; }
+    100% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* Fire Streak Ember Glow */
+  .streak-fire-active {
+    border-color: #f97316 !important;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.25) !important;
+    animation: emberPulse 2.5s infinite alternate ease-in-out;
+  }
+  @keyframes emberPulse {
+    0% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
+    100% { box-shadow: 0 0 28px rgba(249, 115, 22, 0.5); }
+  }
+
+  /* Heatmap Styles */
+  .heat-box {
+    width: 14px;
+    height: 14px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+  .heat-box:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 8px var(--accent);
+    z-index: 10;
+  }
+  .heat-box.level-1 { background: rgba(34, 211, 238, 0.3); }
+  .heat-box.level-2 { background: rgba(34, 211, 238, 0.6); box-shadow: 0 0 6px rgba(34, 211, 238, 0.4); }
+  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 10px rgba(34, 211, 238, 0.7); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header with Greeting & Sound FX Switch -->
+<div class="animate-fade-in-up delay-1" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px;">
+  <h1 style="font-weight: 800; font-size: 32px; margin: 0; display: flex; align-items: center; gap: 12px;">
+    <span class="avatar" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid var(--accent); padding: 4px; display: inline-block;">{{ u['avatar'] }}</span> 
+    <span>Hello, <span style="color: var(--accent);">{{ u['name'] }}</span></span>
+  </h1>
+  <div>
+    <button class="sound-toggle-btn" id="soundToggleBtn" onclick="toggleSoundFX()" title="Toggle UI sound effects">
+      <span id="soundIcon">🔊</span> <span id="soundLabel">Sound: ON</span>
+    </button>
+  </div>
+</div>
+
+<!-- 4 Core Metric Glass Cards -->
 <div class="stats-grid animate-fade-in-up delay-2">
-  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
-    <div class="stat-title">⭐ Points</div>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05" onmouseenter="AudioFX.playPop()">
+    <div class="stat-title">⭐ Total Points</div>
     <div class="stat-value counter" data-target="{{ points }}">0</div>
   </div>
-  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
-    <div class="stat-title">🏅 Level</div>
-    <div class="stat-value">{{ level }}</div>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05" onmouseenter="AudioFX.playPop()">
+    <div class="stat-title">🏅 Student Rank</div>
+    <div class="stat-value" style="font-size: 24px; color: var(--accent);">{{ level }}</div>
   </div>
-  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
-    <div class="stat-title">⏱️ Minutes</div>
+  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05" onmouseenter="AudioFX.playPop()">
+    <div class="stat-title">⏱️ Active Minutes</div>
     <div class="stat-value counter" data-target="{{ minutes }}">0</div>
   </div>
-  <div class="glass-card stat-box" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05">
-    <div class="stat-title">🔥 Streak</div>
+  <div class="glass-card stat-box {% if streak >= 3 %}streak-fire-active{% endif %}" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-tilt-max="8" data-tilt-scale="1.05" onmouseenter="AudioFX.playPop()">
+    <div class="stat-title">🔥 Daily Streak</div>
     <div class="stat-value counter" data-target="{{ streak }}">0</div>
   </div>
 </div>
 
-<div class="glass-card animate-fade-in-up delay-3" style="position:relative; margin-bottom: 24px; padding: 28px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-  <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at 100% -50%, var(--accent-glow) 0%, transparent 60%); z-index:0; pointer-events: none;"></div>
+<!-- FitCoins Rewards Wallet Banner -->
+<div class="glass-card balance-card-glow animate-fade-in-up delay-3" style="position:relative; margin-bottom: 24px; padding: 26px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;" onmouseenter="AudioFX.playCoin()">
   <div style="position:relative; z-index:1;">
-    <div style="color:var(--muted); font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Redeemable Balance</div>
-    <div style="font-size:38px; font-weight:800; color:var(--text); margin-top:4px;">⭐ <span class="counter" data-target="{{ balance }}">0</span></div>
+    <div style="color:var(--muted); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;">Redeemable Balance</div>
+    <div style="font-size:36px; font-weight:800; color:var(--text); margin-top:4px;">
+      ⭐ <span class="counter" data-target="{{ balance }}">0</span> <span style="font-size: 16px; color: var(--muted); font-weight: normal;">FitCoins</span>
+    </div>
   </div>
   <div style="position:relative; z-index:1;">
-    <a class="btn primary-btn" style="box-shadow: 0 4px 15px var(--accent-glow); padding: 12px 24px;" href="/rewards">🎁 Visit Rewards Store</a>
+    <a class="btn primary-btn" style="box-shadow: 0 4px 18px var(--accent-glow); padding: 12px 24px; font-weight: 700;" href="/rewards" onclick="AudioFX.playCoin()">
+      🎁 Visit Rewards Store
+    </a>
   </div>
 </div>
 
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+<!-- Apple Activity Rings & Consistency Heatmap Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 24px;">
   
   <!-- Apple Watch Rings -->
   <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="3" style="padding: 24px; display: flex; flex-direction: column; justify-content: center;">
@@ -81,7 +235,7 @@
   <!-- Cyberpunk Heatmap -->
   <div class="glass-card animate-fade-in-up delay-4" data-tilt data-tilt-glare data-tilt-max-glare="0.1" data-tilt-max="3" style="padding: 24px; display: flex; flex-direction: column; justify-content: center;">
     <h2 style="margin:0; font-size: 16px; font-weight: 700; color: var(--text);">Consistency Grid</h2>
-    <p class="muted" style="font-size:12px; margin: 4px 0 16px 0;">Your last 98 days of activity</p>
+    <p class="muted" style="font-size:12px; margin: 4px 0 16px 0;">Your last 98 days of campus activity</p>
     
     <div style="display: flex; justify-content: center;">
       <div id="cyber-heatmap" style="display: grid; grid-template-columns: repeat(14, 14px); gap: 4px;">
@@ -92,58 +246,191 @@
 
 </div>
 
-  <h2>Recent Activities</h2>
+<!-- UPGRADE 1: Modern Interactive Activity Feed -->
+<div class="glass-card animate-fade-in-up delay-4" style="padding: 26px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--text);">⚡ Recent Activities & Logs</h2>
+      <span style="background: rgba(16, 185, 129, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+        {{ acts|length }} logged
+      </span>
+    </div>
+    <div>
+      <a href="/activity" class="btn btn-sm" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text); padding: 6px 14px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600;" onclick="AudioFX.playPop()">
+        + Log Manual Activity
+      </a>
+    </div>
+  </div>
+
   {% if acts %}
-  <table>
-    <tr><th>Activity</th><th>Minutes</th><th>Points</th><th>When</th></tr>
-    {% for a in acts %}
-    <tr><td>{{ a['activity'] }}</td><td>{{ a['minutes'] }}</td><td>⭐ {{ a['points'] }}</td><td class="muted">{{ a['created_at'] }}</td></tr>
-    {% endfor %}
-  </table>
+    <div class="activity-feed-container">
+      {% for a in acts %}
+        {% set act_lower = a['activity']|lower %}
+        <div class="activity-card" onmouseenter="AudioFX.playPop()">
+          <!-- Left: Icon & Details -->
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="activity-icon-badge" style="
+              {% if 'canteen' in act_lower or 'snap' in act_lower or 'food' in act_lower or 'thali' in act_lower %}
+                background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4);
+              {% elif 'duel' in act_lower or 'vs' in act_lower %}
+                background: rgba(244, 63, 94, 0.18); border: 1px solid rgba(244, 63, 94, 0.4);
+              {% elif 'run' in act_lower or 'jog' in act_lower or 'sprint' in act_lower %}
+                background: rgba(34, 211, 238, 0.18); border: 1px solid rgba(34, 211, 238, 0.4);
+              {% elif 'walk' in act_lower %}
+                background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59, 130, 246, 0.4);
+              {% elif 'gym' in act_lower or 'push' in act_lower or 'squat' in act_lower or 'workout' in act_lower %}
+                background: rgba(168, 85, 247, 0.18); border: 1px solid rgba(168, 85, 247, 0.4);
+              {% elif 'cycle' in act_lower or 'bike' in act_lower %}
+                background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4);
+              {% elif 'event' in act_lower %}
+                background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(99, 102, 241, 0.4);
+              {% else %}
+                background: rgba(20, 184, 166, 0.18); border: 1px solid rgba(20, 184, 166, 0.4);
+              {% endif %}
+            ">
+              {% if 'canteen' in act_lower or 'snap' in act_lower or 'food' in act_lower or 'thali' in act_lower %}🍽️
+              {% elif 'duel' in act_lower or 'vs' in act_lower %}⚔️
+              {% elif 'run' in act_lower or 'jog' in act_lower or 'sprint' in act_lower %}🏃
+              {% elif 'walk' in act_lower %}🚶
+              {% elif 'gym' in act_lower or 'push' in act_lower or 'squat' in act_lower or 'workout' in act_lower %}🏋️
+              {% elif 'cycle' in act_lower or 'bike' in act_lower %}🚴
+              {% elif 'event' in act_lower %}📅
+              {% else %}⚡{% endif %}
+            </div>
+            <div>
+              <div style="font-weight: 700; font-size: 16px; color: var(--text);">{{ a['activity'] }}</div>
+              <div style="font-size: 13px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                {% if a['minutes'] > 0 %}
+                  <span style="color: var(--accent); font-weight: 600;">⏱️ {{ a['minutes'] }} mins</span> &bull;
+                {% endif %}
+                <span>📅 {{ a['created_at'] }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Neon Points Badge -->
+          <div>
+            <span class="pts-badge" onclick="AudioFX.playCoin()">
+              +{{ a['points'] }} ⭐
+            </span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   {% else %}
-  <p class="muted">No activities yet. Start your first activity!</p>
+    <div style="text-align: center; padding: 45px 20px; color: var(--muted);">
+      <div style="font-size: 44px; margin-bottom: 12px;">🏃</div>
+      <h3 style="margin: 0 0 6px 0; color: var(--text); font-size: 18px;">No activities recorded yet!</h3>
+      <p style="margin: 0 0 16px 0; font-size: 14px;">Complete a workout, log your canteen meal, or accept a duel to start building your streak.</p>
+      <a href="/activity" class="btn primary-btn" style="padding: 10px 24px; font-size: 14px;" onclick="AudioFX.playPop()">+ Log Your First Workout</a>
+    </div>
   {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-  renderWeeklyChart({{ chart_labels|tojson }}, {{ chart_minutes|tojson }});
-  
-  // Dashboard Automation & Animation
-  document.addEventListener("DOMContentLoaded", () => {
-    // 1. Progress Bar Animation
-    setTimeout(() => {
-      document.querySelectorAll('.progress-animate').forEach(el => {
-        el.style.width = el.getAttribute('data-target-width');
-      });
-    }, 100);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
 
-    // 2. Number Counter Animation
+<script>
+  // ---------------------------------------------------------------------------
+  // UPGRADE 5: Web Audio API Micro-Interaction Synthesizer (Zero External Files)
+  // ---------------------------------------------------------------------------
+  const AudioFX = {
+    ctx: null,
+    enabled: localStorage.getItem('campusfit_sound') !== 'off',
+    init() {
+      if (!this.ctx && typeof AudioContext !== 'undefined') {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    },
+    playPop() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(480, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.07);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.07);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } catch (e) {}
+    },
+    playCoin() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, now); // Note B5
+        osc.frequency.setValueAtTime(1318.51, now + 0.08); // Note E6
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      } catch (e) {}
+    }
+  };
+
+  function toggleSoundFX() {
+    AudioFX.enabled = !AudioFX.enabled;
+    localStorage.setItem('campusfit_sound', AudioFX.enabled ? 'on' : 'off');
+    updateSoundUI();
+    if (AudioFX.enabled) {
+      AudioFX.playCoin();
+    }
+  }
+
+  function updateSoundUI() {
+    const btn = document.getElementById('soundToggleBtn');
+    const icon = document.getElementById('soundIcon');
+    const label = document.getElementById('soundLabel');
+    if (!btn) return;
+    if (AudioFX.enabled) {
+      btn.classList.remove('muted');
+      icon.innerText = '🔊';
+      label.innerText = 'Sound: ON';
+    } else {
+      btn.classList.add('muted');
+      icon.innerText = '🔇';
+      label.innerText = 'Sound: OFF';
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateSoundUI();
+
+    // 1. Number Counter Animation
     const counters = document.querySelectorAll('.counter');
     counters.forEach(counter => {
       const updateCount = () => {
         const target = +counter.getAttribute('data-target');
         const count = +counter.innerText;
-        const speed = 200; // lower is faster
-        const inc = target / speed;
+        const speed = 120;
+        const inc = Math.max(1, Math.ceil(target / speed));
         
         if (count < target) {
-          counter.innerText = Math.ceil(count + inc);
-          setTimeout(updateCount, 10);
+          counter.innerText = Math.min(target, count + inc);
+          setTimeout(updateCount, 12);
         } else {
           counter.innerText = target;
         }
       };
       updateCount();
     });
-  });
-</script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Fire Mode logic
+    // 2. Fire Mode logic
     const streak = parseInt('{{ streak }}') || 0;
     if (streak >= 3) {
       document.body.style.setProperty('--accent', '#ff4500');
@@ -151,11 +438,11 @@
       document.body.style.setProperty('--blue', '#ff8c00');
       const brand = document.querySelector('.brand');
       if (brand && !brand.innerHTML.includes('On Fire')) {
-        brand.innerHTML += ' <span style="font-size:16px;">?? On Fire!</span>';
+        brand.innerHTML += ' <span style="font-size:16px;">🔥 On Fire!</span>';
       }
     }
 
-    // Heatmap generation
+    // 3. Cyberpunk Heatmap generation
     const heatmapContainer = document.getElementById('cyber-heatmap');
     if (heatmapContainer) {
       heatmapContainer.innerHTML = ''; 
@@ -173,7 +460,7 @@
       }
     }
     
-    // Rings Animation
+    // 4. Apple Rings Animation
     setTimeout(() => {
       document.querySelectorAll('.ring-circle-progress').forEach(ring => {
         const percent = ring.getAttribute('data-percent');
@@ -186,23 +473,4 @@
     }, 300);
   });
 </script>
-<style>
-  /* Heatmap Styles */
-  .heat-box {
-    width: 14px;
-    height: 14px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 3px;
-    transition: all 0.2s;
-  }
-  .heat-box:hover {
-    transform: scale(1.3);
-    box-shadow: 0 0 8px var(--accent);
-    z-index: 10;
-  }
-  .heat-box.level-1 { background: rgba(34, 211, 238, 0.3); }
-  .heat-box.level-2 { background: rgba(34, 211, 238, 0.6); box-shadow: 0 0 6px rgba(34, 211, 238, 0.4); }
-  .heat-box.level-3 { background: rgba(34, 211, 238, 1); box-shadow: 0 0 10px rgba(34, 211, 238, 0.7); }
-</style>
-
 {% endblock %}
