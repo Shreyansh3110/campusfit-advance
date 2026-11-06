@@ -1,0 +1,626 @@
+{% extends "base.html" %}
+{% block title %}Canteen Snap (AI) | CampusFit{% endblock %}
+
+{% block head %}
+<style>
+  .canteen-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 10px;
+  }
+  .fuel-dials {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .fuel-card {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 18px;
+    backdrop-filter: blur(12px);
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .fuel-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+  .fuel-val {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 4px 0;
+    color: var(--text);
+  }
+  .progress-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Scanner Box */
+  .scanner-zone {
+    border: 2px dashed rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.03);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .scanner-zone:hover {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.07);
+  }
+  .scan-laser {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #10b981, #22d3ee, transparent);
+    box-shadow: 0 0 15px #10b981;
+    top: 0;
+    display: none;
+    animation: laserScan 2s infinite ease-in-out;
+  }
+  @keyframes laserScan {
+    0% { top: 0%; opacity: 0.2; }
+    50% { top: 95%; opacity: 1; }
+    100% { top: 0%; opacity: 0.2; }
+  }
+
+  /* Preset Pills */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+  .preset-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .preset-item:hover {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--accent);
+    transform: scale(1.02);
+  }
+  .preset-item.active {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Result Card */
+  .result-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(6, 78, 59, 0.3));
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    padding: 24px;
+    margin-top: 25px;
+    display: none;
+    animation: slideUp 0.4s ease-out forwards;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .grade-badge {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  }
+  .grade-A { background: linear-gradient(135deg, #10b981, #059669); }
+  .grade-B { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .grade-C { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .grade-D { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="canteen-container">
+
+  <!-- Header Banner -->
+  <div class="glass-card" style="padding: 28px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="font-size: 32px;">🍽️</span>
+        <h2 style="font-size: 28px; margin: 0; color: var(--text);">Canteen <span style="color: var(--accent);">Snap AI</span></h2>
+        <span style="background: rgba(16, 185, 129, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">VISION 2.0</span>
+      </div>
+      <p style="margin: 0; color: var(--muted); font-size: 15px;">
+        AI-powered nutrition scanner built specifically for college hostel mess & canteen plates.
+      </p>
+    </div>
+    <div style="text-align: right; background: rgba(0, 0, 0, 0.25); padding: 12px 18px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05);">
+      <small style="color: var(--muted); display: block;">Daily Reward</small>
+      <span style="color: #f59e0b; font-weight: bold; font-size: 18px;">⭐ +15 FitPoints</span>
+      <small style="display: block; color: var(--accent); font-size: 11px;">per meal logged</small>
+    </div>
+  </div>
+
+  <!-- Today's Fuel Dial Cards -->
+  <div class="fuel-dials">
+    <!-- Calories -->
+    <div class="fuel-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-size: 13px; font-weight: 600;">⚡ DAILY CALORIES</span>
+        <small style="color: var(--accent); font-weight: bold;">{{ summary.cal_pct }}%</small>
+      </div>
+      <div class="fuel-val">{{ summary.total_calories }} <span style="font-size: 14px; color: var(--muted); font-weight: normal;">/ {{ summary.target_calories }} kcal</span></div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ summary.cal_pct }}%; background: linear-gradient(90deg, #10b981, #22d3ee);"></div>
+      </div>
+    </div>
+
+    <!-- Protein -->
+    <div class="fuel-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-size: 13px; font-weight: 600;">🥩 PROTEIN TARGET</span>
+        <small style="color: #38bdf8; font-weight: bold;">{{ summary.protein_pct }}%</small>
+      </div>
+      <div class="fuel-val">{{ summary.total_protein }}g <span style="font-size: 14px; color: var(--muted); font-weight: normal;">/ {{ summary.target_protein }}g</span></div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ summary.protein_pct }}%; background: linear-gradient(90deg, #0284c7, #38bdf8);"></div>
+      </div>
+    </div>
+
+    <!-- Carbs -->
+    <div class="fuel-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-size: 13px; font-weight: 600;">🌾 CARBS (GLYCOGEN)</span>
+        <small style="color: #f59e0b; font-weight: bold;">{{ summary.carbs_pct }}%</small>
+      </div>
+      <div class="fuel-val">{{ summary.total_carbs }}g <span style="font-size: 14px; color: var(--muted); font-weight: normal;">/ {{ summary.target_carbs }}g</span></div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ summary.carbs_pct }}%; background: linear-gradient(90deg, #d97706, #fbbf24);"></div>
+      </div>
+    </div>
+
+    <!-- Fats -->
+    <div class="fuel-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: var(--muted); font-size: 13px; font-weight: 600;">🥑 HEALTHY FATS</span>
+        <small style="color: #f43f5e; font-weight: bold;">{{ summary.fats_pct }}%</small>
+      </div>
+      <div class="fuel-val">{{ summary.total_fats }}g <span style="font-size: 14px; color: var(--muted); font-weight: normal;">/ {{ summary.target_fats }}g</span></div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ summary.fats_pct }}%; background: linear-gradient(90deg, #e11d48, #fb7185);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Scanner & Selector -->
+  <div class="glass-card" style="padding: 24px;">
+    <!-- Tab Controls -->
+    <div style="display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
+      <button class="tab-btn active" id="tabPhotoBtn" onclick="switchTab('photo')">📷 Camera / Photo Upload</button>
+      <button class="tab-btn" id="tabPresetBtn" onclick="switchTab('preset')">⚡ Popular Mess & Canteen Menu</button>
+      <button class="tab-btn" id="tabManualBtn" onclick="switchTab('manual')">✍️ Type Custom Dish</button>
+    </div>
+
+    <!-- Meal Timing Selector -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+      <span style="color: var(--muted); font-size: 14px; font-weight: 600;">Timing:</span>
+      <div style="display: flex; gap: 8px;" id="mealTypeGroup">
+        <button type="button" class="btn btn-sm timing-btn" onclick="setMealType('Breakfast')" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text);">Breakfast</button>
+        <button type="button" class="btn btn-sm timing-btn active" onclick="setMealType('Lunch')" style="background: var(--accent); color: #000; font-weight: bold;">Lunch</button>
+        <button type="button" class="btn btn-sm timing-btn" onclick="setMealType('Snacks')" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text);">Snacks</button>
+        <button type="button" class="btn btn-sm timing-btn" onclick="setMealType('Dinner')" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text);">Dinner</button>
+        <button type="button" class="btn btn-sm timing-btn" onclick="setMealType('Post-Workout')" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: var(--text);">Post-Workout</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: Camera / Photo Scanner -->
+    <div id="tabPhoto">
+      <div class="scanner-zone" id="dropZone" onclick="document.getElementById('plateFileInput').click()">
+        <div class="scan-laser" id="laserLine"></div>
+        <input type="file" id="plateFileInput" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelected(event)">
+        
+        <div id="scannerPrompt">
+          <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
+          <h3 style="margin: 0 0 8px 0; color: var(--text);">Tap to Snap or Upload Canteen Plate</h3>
+          <p style="color: var(--muted); font-size: 14px; max-width: 450px; margin: 0 auto;">
+            Hold your camera over your mess plate or cafeteria tray. Our AI analyzes food items, calculates portion macros, and grades nutrition balance.
+          </p>
+          <div style="margin-top: 15px;">
+            <span class="btn btn-primary" style="padding: 8px 24px; font-size: 14px; pointer-events: none;">Select Plate Photo</span>
+          </div>
+        </div>
+
+        <div id="previewContainer" style="display: none; position: relative;">
+          <img id="imagePreview" style="max-height: 280px; max-width: 100%; border-radius: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.5);" />
+          <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+            <button type="button" class="btn btn-primary" id="analyzeBtn" onclick="runScan(event)">✨ Analyze Plate With AI</button>
+            <button type="button" class="btn" onclick="resetScanner(event)" style="background: rgba(255,255,255,0.1); color: var(--text);">Change Photo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Popular Mess & Canteen Menu -->
+    <div id="tabPreset" style="display: none;">
+      <p style="color: var(--muted); font-size: 14px; margin-top: 0;">Click any common hostel mess meal for instant nutritional profiling:</p>
+      <div class="preset-grid">
+        {% for key, food in presets.items() %}
+          <div class="preset-item" onclick="selectPreset('{{ key }}', this)">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <span style="font-weight: 700; color: var(--text); font-size: 14px;">{{ food.name }}</span>
+              <span style="font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: bold; background: rgba(16, 185, 129, 0.2); color: var(--accent);">{{ food.grade }}</span>
+            </div>
+            <div style="margin-top: 6px; font-size: 12px; color: var(--muted);">
+              ⚡ {{ food.calories }} kcal &nbsp;|&nbsp; 🥩 {{ food.protein }}g P
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- TAB 3: Type Custom Dish -->
+    <div id="tabManual" style="display: none;">
+      <div style="max-width: 600px; margin: 0 auto; text-align: center; padding: 15px 0;">
+        <h4 style="color: var(--text); margin-top: 0;">What did you eat at the mess / canteen?</h4>
+        <p style="color: var(--muted); font-size: 13px;">Type your meal (e.g., "Chicken Biryani with raita", "2 paneer parathas + lassi", "Dal Khichdi + Curd"):</p>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+          <input type="text" id="customFoodInput" class="form-control" placeholder="e.g. 2 Paneer Parathas + Dahi" style="flex: 1; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text); border-radius: 12px;">
+          <button type="button" class="btn btn-primary" onclick="analyzeCustomText()" style="padding: 12px 24px;">Analyze Dish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan Status Loader -->
+    <div id="scanLoader" style="display: none; text-align: center; padding: 30px;">
+      <div style="display: inline-block; width: 44px; height: 44px; border: 3px solid rgba(16, 185, 129, 0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear;"></div>
+      <p style="color: var(--accent); font-weight: 600; margin-top: 15px;" id="loaderMsg">AI Vision is scanning plate items & macros...</p>
+    </div>
+
+    <!-- SCAN RESULT CARD -->
+    <div class="result-card" id="resultCard">
+      <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div class="grade-badge" id="resGradeBadge">A</div>
+          <div>
+            <span id="resBadgeTag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Balanced Fuel</span>
+            <h3 id="resFoodName" style="margin: 6px 0 2px 0; color: var(--text); font-size: 22px;">Hostel Regular Thali</h3>
+            <small style="color: var(--muted);" id="resMealTiming">Lunch &bull; Health Score: 88/100</small>
+          </div>
+        </div>
+        <div>
+          <!-- Save Form -->
+          <form action="/canteen/log" method="POST" id="logMealForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="food_name" id="formFoodName">
+            <input type="hidden" name="meal_type" id="formMealType" value="Lunch">
+            <input type="hidden" name="calories" id="formCalories">
+            <input type="hidden" name="protein" id="formProtein">
+            <input type="hidden" name="carbs" id="formCarbs">
+            <input type="hidden" name="fats" id="formFats">
+            <input type="hidden" name="grade" id="formGrade">
+            <input type="hidden" name="score" id="formScore">
+            <input type="hidden" name="advice" id="formAdvice">
+            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; font-size: 15px; font-weight: bold; background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow);">
+              💾 Log to Daily Diary (+15 Pts)
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Macro breakdown mini pills -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 20px 0;">
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; text-align: center;">
+          <small style="color: var(--muted); font-size: 11px; display: block;">CALORIES</small>
+          <span style="font-size: 20px; font-weight: bold; color: #fff;" id="resCal">580</span> <small style="color: var(--muted);">kcal</small>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; text-align: center;">
+          <small style="color: #38bdf8; font-size: 11px; display: block;">PROTEIN</small>
+          <span style="font-size: 20px; font-weight: bold; color: #38bdf8;" id="resProtein">17</span> <small style="color: #38bdf8;">g</small>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; text-align: center;">
+          <small style="color: #fbbf24; font-size: 11px; display: block;">CARBOHYDRATES</small>
+          <span style="font-size: 20px; font-weight: bold; color: #fbbf24;" id="resCarbs">86</span> <small style="color: #fbbf24;">g</small>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; text-align: center;">
+          <small style="color: #fb7185; font-size: 11px; display: block;">FATS</small>
+          <span style="font-size: 20px; font-weight: bold; color: #fb7185;" id="resFats">16</span> <small style="color: #fb7185;">g</small>
+        </div>
+      </div>
+
+      <!-- Advice Box -->
+      <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 0 12px 12px 0;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 18px;">💡</span>
+          <strong style="color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Campus Dietitian AI Advice</strong>
+        </div>
+        <p style="margin: 0; color: var(--text); font-size: 14px; line-height: 1.5;" id="resAdvice">
+          Solid balanced foundation! To hit your protein goal, ask for a second katori of dal or add a cup of curd / boiled eggs.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Meal Timeline -->
+  <div class="glass-card" style="padding: 24px; margin-top: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <h3 style="margin: 0; color: var(--text); font-size: 20px;">📅 Today's Food Diary</h3>
+      <span style="color: var(--muted); font-size: 13px;">{{ summary.meal_count }} meals logged</span>
+    </div>
+
+    {% if not summary.meals %}
+      <div style="text-align: center; padding: 40px 20px; color: var(--muted);">
+        <div style="font-size: 40px; margin-bottom: 10px;">🥗</div>
+        <p style="margin: 0; font-size: 15px;">No meals logged today yet.</p>
+        <small>Snap a plate or select from the canteen menu above to earn your +15 FitPoints!</small>
+      </div>
+    {% else %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for m in summary.meals %}
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <span style="font-size: 24px;">
+                {% if m.meal_type == 'Breakfast' %}🍳
+                {% elif m.meal_type == 'Lunch' %}🍱
+                {% elif m.meal_type == 'Snacks' %}🥪
+                {% elif m.meal_type == 'Dinner' %}🍛
+                {% else %}🥤{% endif %}
+              </span>
+              <div>
+                <strong style="color: var(--text); font-size: 16px;">{{ m.food_name }}</strong>
+                <div style="color: var(--muted); font-size: 12px; margin-top: 2px;">
+                  <span style="color: var(--accent); font-weight: 600;">{{ m.meal_type }}</span> &bull; {{ m.created_at }} &bull; Grade: <strong>{{ m.grade }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <div style="text-align: right;">
+                <span style="font-size: 17px; font-weight: 800; color: #fff;">{{ m.calories }} kcal</span>
+                <div style="font-size: 12px; color: var(--muted);">
+                  <span style="color: #38bdf8;">{{ m.protein }}g P</span> &bull; 
+                  <span style="color: #fbbf24;">{{ m.carbs }}g C</span> &bull; 
+                  <span style="color: #fb7185;">{{ m.fats }}g F</span>
+                </div>
+              </div>
+              <form action="/canteen/delete/{{ m.id }}" method="POST" onsubmit="return confirm('Remove this meal entry?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" style="background: transparent; border: none; color: #64748b; cursor: pointer; padding: 6px; font-size: 16px; transition: color 0.2s;" title="Delete meal" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">
+                  ✕
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Client-side script for Scanner, AI Call, and Tabs -->
+<script>
+  let currentMealType = "Lunch";
+  let selectedImageData = null;
+
+  function setMealType(type) {
+    currentMealType = type;
+    document.querySelectorAll('.timing-btn').forEach(b => {
+      if (b.innerText === type) {
+        b.style.background = "var(--accent)";
+        b.style.color = "#000";
+        b.style.fontWeight = "bold";
+      } else {
+        b.style.background = "rgba(255,255,255,0.06)";
+        b.style.color = "var(--text)";
+        b.style.fontWeight = "normal";
+      }
+    });
+    document.getElementById('formMealType').value = type;
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabPhoto').style.display = tab === 'photo' ? 'block' : 'none';
+    document.getElementById('tabPreset').style.display = tab === 'preset' ? 'block' : 'none';
+    document.getElementById('tabManual').style.display = tab === 'manual' ? 'block' : 'none';
+
+    document.getElementById('tabPhotoBtn').classList.toggle('active', tab === 'photo');
+    document.getElementById('tabPresetBtn').classList.toggle('active', tab === 'preset');
+    document.getElementById('tabManualBtn').classList.toggle('active', tab === 'manual');
+  }
+
+  function handleImageSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      selectedImageData = e.target.result;
+      document.getElementById('imagePreview').src = selectedImageData;
+      document.getElementById('scannerPrompt').style.display = 'none';
+      document.getElementById('previewContainer').style.display = 'block';
+      // Automatically trigger scan for smooth user experience!
+      runScan();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetScanner(e) {
+    if (e) e.stopPropagation();
+    selectedImageData = null;
+    document.getElementById('plateFileInput').value = '';
+    document.getElementById('scannerPrompt').style.display = 'block';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('laserLine').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'none';
+  }
+
+  async function runScan(e) {
+    if (e) e.stopPropagation();
+    if (!selectedImageData) return;
+
+    const laser = document.getElementById('laserLine');
+    laser.style.display = 'block';
+    document.getElementById('scanLoader').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+
+    try {
+      const resp = await fetch('/canteen/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          image_data: selectedImageData,
+          meal_type: currentMealType,
+          csrf_token: '{{ csrf_token }}'
+        })
+      });
+
+      const data = await resp.json();
+      displayResult(data);
+    } catch (err) {
+      console.error(err);
+      alert('Error scanning plate. Please try selecting a preset dish or try again.');
+    } finally {
+      laser.style.display = 'none';
+      document.getElementById('scanLoader').style.display = 'none';
+    }
+  }
+
+  async function selectPreset(key, element) {
+    document.querySelectorAll('.preset-item').forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
+
+    document.getElementById('scanLoader').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+
+    try {
+      const resp = await fetch('/canteen/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          query: key,
+          meal_type: currentMealType,
+          csrf_token: '{{ csrf_token }}'
+        })
+      });
+      const data = await resp.json();
+      displayResult(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      document.getElementById('scanLoader').style.display = 'none';
+    }
+  }
+
+  async function analyzeCustomText() {
+    const query = document.getElementById('customFoodInput').value.trim();
+    if (!query) {
+      alert('Please enter a dish name.');
+      return;
+    }
+
+    document.getElementById('scanLoader').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+
+    try {
+      const resp = await fetch('/canteen/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          query: query,
+          meal_type: currentMealType,
+          csrf_token: '{{ csrf_token }}'
+        })
+      });
+      const data = await resp.json();
+      displayResult(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      document.getElementById('scanLoader').style.display = 'none';
+    }
+  }
+
+  function displayResult(data) {
+    if (!data) return;
+
+    document.getElementById('resFoodName').innerText = data.name || "Canteen Meal";
+    document.getElementById('resCal').innerText = data.calories || 0;
+    document.getElementById('resProtein').innerText = data.protein || 0;
+    document.getElementById('resCarbs').innerText = data.carbs || 0;
+    document.getElementById('resFats').innerText = data.fats || 0;
+    document.getElementById('resBadgeTag').innerText = data.badge || "Campus Fuel";
+    document.getElementById('resAdvice').innerText = data.advice || "Stay hydrated and eat balanced meals!";
+    document.getElementById('resMealTiming').innerText = `${currentMealType} • Health Score: ${data.score || 75}/100`;
+
+    // Grade styling
+    const badge = document.getElementById('resGradeBadge');
+    badge.innerText = data.grade || 'B';
+    badge.className = 'grade-badge grade-' + (data.grade ? data.grade[0] : 'B');
+
+    // Fill hidden form values for submission
+    document.getElementById('formFoodName').value = data.name || "Canteen Meal";
+    document.getElementById('formMealType').value = currentMealType;
+    document.getElementById('formCalories').value = data.calories || 0;
+    document.getElementById('formProtein').value = data.protein || 0;
+    document.getElementById('formCarbs').value = data.carbs || 0;
+    document.getElementById('formFats').value = data.fats || 0;
+    document.getElementById('formGrade').value = data.grade || "B";
+    document.getElementById('formScore').value = data.score || 75;
+    document.getElementById('formAdvice').value = data.advice || "";
+
+    const card = document.getElementById('resultCard');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>
+{% endblock %}

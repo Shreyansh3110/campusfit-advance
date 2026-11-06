@@ -93,6 +93,20 @@ BADGES = {
 
 def init_db():
     c = get_db()
+    c.execute("""CREATE TABLE IF NOT EXISTS canteen_logs(
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        food_name TEXT NOT NULL,
+        meal_type TEXT DEFAULT 'Lunch',
+        calories INTEGER DEFAULT 0,
+        protein INTEGER DEFAULT 0,
+        carbs INTEGER DEFAULT 0,
+        fats INTEGER DEFAULT 0,
+        grade TEXT DEFAULT 'B',
+        health_score INTEGER DEFAULT 75,
+        advice TEXT,
+        created_at TEXT
+    )""")
     c.execute("""CREATE TABLE IF NOT EXISTS duels(
         id SERIAL PRIMARY KEY,
         challenger_id INTEGER NOT NULL,

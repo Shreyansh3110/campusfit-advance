@@ -1,3 +1,4 @@
+import base64
 import os
 import secrets
 from functools import wraps
@@ -18,7 +19,7 @@ if os.path.exists(_env_file):
     except Exception:
         pass
 
-from flask import Flask, request, redirect, session, render_template, flash, abort, jsonify
+from flask import url_for, Flask, request, redirect, session, render_template, flash, abort, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from db import (
@@ -26,6 +27,7 @@ from db import (
     get_user_badges, award_badge, get_balance, get_daily_activity_summary
 )
 from coach_service import generate_daily_tips
+from canteen_service import analyze_plate, get_today_nutrition_summary, log_canteen_meal, CANTEEN_FOOD_DATABASE
 from email_service import send_daily_digest_email
 from api import api_bp
 
@@ -48,6 +50,8 @@ def csrf_protect():
             return  # Exempt REST API endpoints
         token = session.get("_csrf_token")
         sent = request.form.get("csrf_token")
+        if not sent and request.is_json:
+            sent = (request.get_json(silent=True) or {}).get("csrf_token") or request.headers.get("X-CSRFToken")
         if not token or not sent or token != sent:
             abort(400, description="Invalid or missing CSRF token. Please refresh and try again.")
 
@@ -247,7 +251,7 @@ def campus_map():
 @app.route("/setup-db")
 def setup_db():
     init_db()
-    return "Database updated with new tables (including duels)!"
+    return "Database updated with new tables (including duels and canteen_logs)!"
 
 @app.route("/duels")
 @login_required("student")
@@ -294,6 +298,79 @@ def accept_duel(duel_id):
     conn.execute("UPDATE duels SET status='active' WHERE id=? AND opponent_id=?", (duel_id, user_id))
     flash("Challenge accepted! Let the duel begin!", "success")
     return redirect(url_for("duels_dashboard"))
+
+
+# ---------------------------------------------------------------------------
+# Canteen Snap (AI Mess & Canteen Food Logger)
+# ---------------------------------------------------------------------------
+
+@app.route("/canteen")
+@login_required("student")
+def canteen_dashboard():
+    user_id = session["uid"]
+    conn = get_db()
+    summary = get_today_nutrition_summary(conn, user_id)
+    return render_template("canteen.html", summary=summary, presets=CANTEEN_FOOD_DATABASE)
+
+
+@app.route("/canteen/scan", methods=["POST"])
+@login_required("student")
+def canteen_scan():
+    conn = get_db()
+    data = request.get_json(silent=True) or {}
+    query = data.get("query")
+    meal_type = data.get("meal_type", "Lunch")
+    image_b64 = data.get("image_data")
+    
+    image_bytes = None
+    mime_type = "image/jpeg"
+    if image_b64 and "," in image_b64:
+        header, b64_str = image_b64.split(",", 1)
+        if "png" in header:
+            mime_type = "image/png"
+        elif "webp" in header:
+            mime_type = "image/webp"
+        try:
+            image_bytes = base64.b64decode(b64_str)
+        except Exception:
+            image_bytes = None
+
+    analysis = analyze_plate(conn, food_query=query, image_bytes=image_bytes, mime_type=mime_type, meal_type=meal_type)
+    return jsonify(analysis)
+
+
+@app.route("/canteen/log", methods=["POST"])
+@login_required("student")
+def canteen_log_meal():
+    user_id = session["uid"]
+    conn = get_db()
+    meal_data = {
+        "name": request.form.get("food_name", "Campus Meal"),
+        "meal_type": request.form.get("meal_type", "Lunch"),
+        "calories": request.form.get("calories", 0),
+        "protein": request.form.get("protein", 0),
+        "carbs": request.form.get("carbs", 0),
+        "fats": request.form.get("fats", 0),
+        "grade": request.form.get("grade", "B"),
+        "score": request.form.get("score", 75),
+        "advice": request.form.get("advice", "")
+    }
+    pts = log_canteen_meal(conn, user_id, meal_data)
+    update_streak(conn, user_id)
+    check_and_award_badges(conn, user_id)
+    flash(f"🎉 Meal logged! You earned +{pts} FitPoints towards your daily goal!")
+    return redirect(url_for("canteen_dashboard"))
+
+
+@app.route("/canteen/delete/<int:meal_id>", methods=["POST"])
+@login_required("student")
+def canteen_delete_meal(meal_id):
+    user_id = session["uid"]
+    conn = get_db()
+    conn.execute("DELETE FROM canteen_logs WHERE id=? AND user_id=?", (meal_id, user_id))
+    flash("Meal entry removed.")
+    return redirect(url_for("canteen_dashboard"))
+
 
 
 @app.route("/api/docs")
